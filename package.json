@@ -1,0 +1,25 @@
+{
+  "name": "junk-shot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx http-server ./src -o -c-1",
+    "start": "npx http-server ./src -o -c-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lex0411/Junk-Shot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lex0411/Junk-Shot/issues"
+  },
+  "homepage": "https://github.com/Lex0411/Junk-Shot#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.86.0"
+  }
+}
