@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JunkShot - Settings</title>
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="bubble bubble1"></div>
+        <div class="bubble bubble2"></div>
+        <div class="bubble bubble3"></div>
+        <div class="bubble bubble4"></div>
+        <div class="bubble bubble5"></div>
+    </div>
+
+    <!-- Back Button -->
+        <button class="back-button" id="settingsBackButton" type="button">
+            <i class="fas fa-arrow-left"></i>
+            <span class="back-button-label">Back To Menu</span>
+        </button>
+
+    <div class="container settings-container">
+        <!-- Settings Content (Simplified) -->
+        <div class="settings-content">
+            <!-- Sensitivity Setting -->
+            <div class="setting-item">
+                <div class="setting-header">
+                    <i class="fas fa-crosshairs"></i>
+                    <h3>Sensitivity</h3>
+                </div>
+                <div class="setting-controls">
+                    <button class="control-btn minus-btn" onclick="changeSensitivity(-10)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <div class="slider-container">
+                        <div class="slider-track" onclick="updateSensitivity(event)">
+                            <div class="slider-fill" style="width: 50%"></div>
+                            <div class="slider-handle" style="left: 50%"></div>
+                        </div>
+                    </div>
+                    <button class="control-btn plus-btn" onclick="changeSensitivity(10)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Music Volume Setting -->
+            <div class="setting-item">
+                <div class="setting-header">
+                    <i class="fas fa-music"></i>
+                    <h3>Music Volume</h3>
+                </div>
+                <div class="setting-controls">
+                    <button class="control-btn minus-btn" onclick="changeMusicVolume(-10)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <div class="slider-container">
+                        <div class="slider-track" onclick="updateMusicVolume(event)">
+                            <div class="slider-fill" style="width: 70%"></div>
+                            <div class="slider-handle" style="left: 70%"></div>
+                        </div>
+                    </div>
+                    <button class="control-btn plus-btn" onclick="changeMusicVolume(10)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SFX Volume Setting -->
+            <div class="setting-item">
+                <div class="setting-header">
+                    <i class="fas fa-bomb"></i>
+                    <h3>SFX Volume</h3>
+                </div>
+                <div class="setting-controls">
+                    <button class="control-btn minus-btn" onclick="changeSfxVolume(-10)">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <div class="slider-container">
+                        <div class="slider-track" onclick="updateSfxVolume(event)">
+                            <div class="slider-fill" style="width: 80%"></div>
+                            <div class="slider-handle" style="left: 80%"></div>
+                        </div>
+                    </div>
+                    <button class="control-btn plus-btn" onclick="changeSfxVolume(10)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button id="saveBtn" type="button" class="settings-save-btn">
+                    <i class="fas fa-save"></i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/src/pages/settingsPage.js"></script>
+</body>
+</html>
