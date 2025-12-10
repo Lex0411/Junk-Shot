@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JunkShot - Home</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/index.css" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="bubble bubble1"></div>
+        <div class="bubble bubble2"></div>
+        <div class="bubble bubble3"></div>
+        <div class="bubble bubble4"></div>
+        <div class="bubble bubble5"></div>
+
+        <div class="floating-trash">
+            <i class="fas fa-trash"></i>
+            <i class="fas fa-recycle"></i>
+            <i class="fas fa-bottle-water"></i>
+            <i class="fas fa-battery-full"></i>
+            <i class="fas fa-apple-alt"></i>
+        </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="title-container">
+                <h1 class="main-title">
+                    <span class="title-junk">JUNK</span><span class="title-shot">SHOT</span>
+                </h1>
+            </div>
+            <p class="subtitle">Sort trash like a pro! Learn how to segregate trash properly</p>
+            <div class="recycle-icon">
+                <i class="fas fa-recycle"></i>
+            </div>
+        </header>
+
+        <!-- Mascot -->
+        <div class="mascot">
+            <div class="mascot-antenna"></div>
+            <div class="mascot-body">
+                <div class="mascot-face">
+                    <div class="mascot-eye left"></div>
+                    <div class="mascot-eye right"></div>
+                    <div class="mascot-smile"></div>
+                </div>
+            </div>
+            <div class="mascot-speech">
+                <p>Let's make a difference together!</p>
+            </div>
+        </div>
+
+        <!-- Menu Buttons -->
+        <div class="menu-buttons">
+            <button id="playBtn" class="menu-btn play-btn">
+                <div class="btn-icon">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="btn-text">
+                    <span class="btn-title">Play Game</span>
+                    <span class="btn-sub">Start sorting garbage!</span>
+                </div>
+                <div class="btn-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </button>
+
+            <button id="settingsBtn" class="menu-btn settings-btn">
+                <div class="btn-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="btn-text">
+                    <span class="btn-title">Settings</span>
+                    <span class="btn-sub">Adjust game preferences</span>
+                </div>
+                <div class="btn-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </button>
+
+            <button id="quitBtn" class="menu-btn quit-btn">
+                <div class="btn-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <div class="btn-text">
+                    <span class="btn-title">Quit</span>
+                    <span class="btn-sub">Exit the game</span>
+                </div>
+                <div class="btn-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </button>
+        </div>
+
+    </div> <!-- END OF CONTAINER -->
+
+    <!-- Quit Confirmation Modal -->
+    <div id="quitModal" class="modal" aria-hidden="true" data-state="closed">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-sign-out-alt"></i>
+                <h2>Quit Game?</h2>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to quit the game?</p>
+
+                <div class="modal-buttons">
+                    <button id="yesBtn" class="modal-btn yes-btn">
+                        <i class="fas fa-check"></i>
+                        Yes
+                    </button>
+                    <button id="noBtn" class="modal-btn no-btn">
+                        <i class="fas fa-times"></i>
+                        No
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN MENU SCRIPT -->
+    <script type="module" src="/src/pages/mainMenu.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JunkShot - Game</title>
+    <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- A-Frame scene mounts here -->
+    <div id="aframe-stage" aria-hidden="true"></div>
+
+    <!-- Minimal HUD overlay for score/time/hearts -->
+    <div class="hud" role="status" aria-live="polite">
+        <div class="hud-column">
+            <div class="hud-card" id="score-display">
+                <span class="hud-label">Score</span>
+                <span class="hud-value" id="score-value">0</span>
+            </div>
+            <div class="hud-card" id="highscore-display">
+                <span class="hud-label">High Score</span>
+                <span class="hud-value" id="highscore-value">0</span>
+            </div>
+        </div>
+
+        <div class="hud-column hud-column-right">
+            <div class="hud-card" id="timer-display">
+                <span class="hud-label">Time</span>
+                <span class="hud-value" id="time-value">0s</span>
+            </div>
+            <div class="hud-card lives" id="lives-display">
+                <span class="hud-label">Lives</span>
+                <div class="lives-icons" id="lives-container">
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="round-prompt" id="roundPrompt" aria-live="assertive">
+        <span id="roundPromptText">Shoot all the ORGANIC trash!</span>
+    </div>
+
+    <!-- Pause & Settings Overlay -->
+    <div class="pause-overlay" id="pauseOverlay" aria-hidden="true">
+        <div class="pause-panel">
+            <div class="pause-menu" id="pauseMenuView">
+                <h2>Game Paused</h2>
+                <p>Take a breather before jumping back in.</p>
+                <div class="pause-actions">
+                    <button type="button" class="pause-btn primary" id="resumeButton">Resume</button>
+                    <button type="button" class="pause-btn" id="settingsButton">Settings</button>
+                    <button type="button" class="pause-btn danger" id="quitButton">Return to Main Menu</button>
+                </div>
+            </div>
+
+            <div class="pause-settings" id="pauseSettingsView" hidden>
+                <div class="pause-settings-header">
+                    <h2>Settings</h2>
+                    <p>Adjust your experience without leaving the match.</p>
+                </div>
+                <div class="inline-settings" id="inlineSettingsPanel">
+                    <div class="inline-setting" data-setting="sensitivity">
+                        <div class="inline-setting-header">
+                            <i class="fas fa-crosshairs" aria-hidden="true"></i>
+                            <div class="inline-setting-text">
+                                <h3>Sensitivity</h3>
+                                <span class="inline-setting-value" data-setting-value>50%</span>
+                            </div>
+                        </div>
+                        <div class="inline-setting-controls">
+                            <button type="button" class="inline-control-btn" data-action="decrement" aria-label="Decrease sensitivity">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="inline-slider" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+                                <div class="inline-slider-fill"></div>
+                                <div class="inline-slider-handle"></div>
+                            </div>
+                            <button type="button" class="inline-control-btn" data-action="increment" aria-label="Increase sensitivity">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="inline-setting" data-setting="musicVolume">
+                        <div class="inline-setting-header">
+                            <i class="fas fa-music" aria-hidden="true"></i>
+                            <div class="inline-setting-text">
+                                <h3>Music Volume</h3>
+                                <span class="inline-setting-value" data-setting-value>70%</span>
+                            </div>
+                        </div>
+                        <div class="inline-setting-controls">
+                            <button type="button" class="inline-control-btn" data-action="decrement" aria-label="Decrease music volume">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="inline-slider" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" tabindex="0">
+                                <div class="inline-slider-fill"></div>
+                                <div class="inline-slider-handle"></div>
+                            </div>
+                            <button type="button" class="inline-control-btn" data-action="increment" aria-label="Increase music volume">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="inline-setting" data-setting="sfxVolume">
+                        <div class="inline-setting-header">
+                            <i class="fas fa-bomb" aria-hidden="true"></i>
+                            <div class="inline-setting-text">
+                                <h3>SFX Volume</h3>
+                                <span class="inline-setting-value" data-setting-value>80%</span>
+                            </div>
+                        </div>
+                        <div class="inline-setting-controls">
+                            <button type="button" class="inline-control-btn" data-action="decrement" aria-label="Decrease sound effects volume">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="inline-slider" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
+                                <div class="inline-slider-fill"></div>
+                                <div class="inline-slider-handle"></div>
+                            </div>
+                            <button type="button" class="inline-control-btn" data-action="increment" aria-label="Increase sound effects volume">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="settings-close-btn" id="settingsBackButton">Back to Pause Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+    <script type="module">
+        import { getSettings, saveSettings } from './src/services/settingsService.js';
+
+        (function() {
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            const pauseMenuView = document.getElementById('pauseMenuView');
+            const pauseSettingsView = document.getElementById('pauseSettingsView');
+            const settingsBackButton = document.getElementById('settingsBackButton');
+            const resumeButton = document.getElementById('resumeButton');
+            const settingsButton = document.getElementById('settingsButton');
+            const quitButton = document.getElementById('quitButton');
+            const inlineSettingsPanel = document.getElementById('inlineSettingsPanel');
+
+            let isPauseOpen = false;
+            const defaultSettings = {
+                sensitivity: 50,
+                musicVolume: 70,
+                sfxVolume: 80
+            };
+            const currentSettings = getSettings();
+            const inlineSettingControls = [];
+
+            const persistSettings = () => {
+                saveSettings(currentSettings);
+            };
+
+            const dispatchGameSignal = (type, detail) => {
+                window.dispatchEvent(new CustomEvent(type, { detail }));
+            };
+
+            const resetToMenuView = () => {
+                pauseOverlay.classList.remove('show-settings');
+                pauseMenuView.hidden = false;
+                pauseSettingsView.hidden = true;
+            };
+
+            const showOverlay = () => {
+                if (isPauseOpen) return;
+                isPauseOpen = true;
+                resetToMenuView();
+                pauseOverlay.classList.add('is-visible');
+                pauseOverlay.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('is-paused');
+                dispatchGameSignal('game:pause');
+            };
+
+            const hideOverlay = () => {
+                if (!isPauseOpen) return;
+                isPauseOpen = false;
+                pauseOverlay.classList.remove('is-visible', 'show-settings');
+                pauseOverlay.setAttribute('aria-hidden', 'true');
+                resetToMenuView();
+                document.body.classList.remove('is-paused');
+                dispatchGameSignal('game:resume');
+            };
+
+            const openSettings = () => {
+                pauseMenuView.hidden = true;
+                pauseSettingsView.hidden = false;
+                pauseOverlay.classList.add('show-settings');
+                syncInlineSettings();
+            };
+
+            function clampValue(value) {
+                return Math.max(0, Math.min(100, Math.round(value)));
+            }
+
+            function updateSetting(key, nextValue) {
+                const clamped = clampValue(nextValue);
+                currentSettings[key] = clamped;
+                persistSettings();
+                dispatchGameSignal('game:settings-change', {
+                    key,
+                    value: clamped,
+                    settings: { ...currentSettings }
+                });
+                const control = inlineSettingControls.find((entry) => entry.key === key);
+                control?.updateUI(clamped);
+            }
+
+            function registerInlineSettingControls() {
+                if (!inlineSettingsPanel) return;
+                inlineSettingsPanel.querySelectorAll('.inline-setting').forEach((element) => {
+                    const key = element.dataset.setting;
+                    if (!key) return;
+
+                    const valueLabel = element.querySelector('[data-setting-value]');
+                    const minusBtn = element.querySelector('[data-action="decrement"]');
+                    const plusBtn = element.querySelector('[data-action="increment"]');
+                    const slider = element.querySelector('.inline-slider');
+                    const fill = element.querySelector('.inline-slider-fill');
+                    const handle = element.querySelector('.inline-slider-handle');
+
+                    const updateUI = (value) => {
+                        if (valueLabel) {
+                            valueLabel.textContent = value + '%';
+                        }
+                        if (fill) {
+                            fill.style.width = value + '%';
+                        }
+                        if (handle) {
+                            handle.style.left = value + '%';
+                        }
+                        if (slider) {
+                            slider.setAttribute('aria-valuenow', String(value));
+                            slider.setAttribute('aria-valuetext', value + '%');
+                        }
+                    };
+
+                    const handleSliderPointer = (event) => {
+                        if (!slider) return;
+                        const rect = slider.getBoundingClientRect();
+                        const percent = ((event.clientX - rect.left) / rect.width) * 100;
+                        updateSetting(key, percent);
+                    };
+
+                    const startSliderDrag = (event) => {
+                        event.preventDefault();
+                        handleSliderPointer(event);
+                        if (!slider) return;
+                        slider.setPointerCapture?.(event.pointerId);
+                        const moveListener = (moveEvent) => handleSliderPointer(moveEvent);
+                        const upListener = (endEvent) => {
+                            slider.releasePointerCapture?.(endEvent.pointerId);
+                            slider.removeEventListener('pointermove', moveListener);
+                            slider.removeEventListener('pointerup', upListener);
+                            slider.removeEventListener('pointercancel', upListener);
+                        };
+                        slider.addEventListener('pointermove', moveListener);
+                        slider.addEventListener('pointerup', upListener);
+                        slider.addEventListener('pointercancel', upListener);
+                    };
+
+                    slider?.addEventListener('pointerdown', startSliderDrag);
+                    slider?.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        handleSliderPointer(event);
+                    });
+                    slider?.addEventListener('keydown', (event) => {
+                        if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            updateSetting(key, currentSettings[key] - 5);
+                        } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+                            event.preventDefault();
+                            updateSetting(key, currentSettings[key] + 5);
+                        }
+                    });
+
+                    minusBtn?.addEventListener('click', () => updateSetting(key, currentSettings[key] - 10));
+                    plusBtn?.addEventListener('click', () => updateSetting(key, currentSettings[key] + 10));
+
+                    inlineSettingControls.push({
+                        key,
+                        updateUI
+                    });
+                });
+            }
+
+            function syncInlineSettings() {
+                inlineSettingControls.forEach(({ key, updateUI }) => {
+                    const value = currentSettings[key] ?? defaultSettings[key] ?? 0;
+                    updateUI(value);
+                });
+            }
+
+            registerInlineSettingControls();
+            syncInlineSettings();
+
+            resumeButton?.addEventListener('click', hideOverlay);
+            settingsButton?.addEventListener('click', () => {
+                if (!isPauseOpen) {
+                    showOverlay();
+                }
+                openSettings();
+            });
+            quitButton?.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+            settingsBackButton?.addEventListener('click', resetToMenuView);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape') return;
+
+                if (pauseOverlay.classList.contains('show-settings')) {
+                    hideOverlay();
+                    return;
+                }
+
+                if (isPauseOpen) {
+                    hideOverlay();
+                } else {
+                    showOverlay();
+                }
+            });
+
+        })();
+    </script>
+</body>
+</html>
