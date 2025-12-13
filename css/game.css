@@ -92,6 +92,10 @@ body.is-paused {
     min-width: 180px;
 }
 
+.lives .hud-label {
+    color: #000000;
+}
+
 .lives-icons {
     display: flex;
     justify-content: center;

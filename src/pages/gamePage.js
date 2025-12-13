@@ -1,6 +1,6 @@
 import AudioManager from '../services/audioManager.js';
 import { spawnTargets, clearTargets } from '../logic/targetSpawner.js';
-import { registerShootingHandlers, unregisterShootingHandlers } from '../logic/shooting.js';
+import { registerMouseShooting, unregisterMouseShooting } from '../logic/mouseShooting.js';
 import { isCorrectCategory } from '../logic/categoryChecker.js';
 import {
 	initScoreSystem,
@@ -16,7 +16,7 @@ import { getHighScore, saveHighScore } from '../services/highScoreService.js';
 const ROUND_PROMPT_DURATION = 2000;
 const ROUND_CATEGORIES = ['organic', 'inorganic', 'recyclable', 'hazardous'];
 const SCORE_PER_HIT = 100;
-const TRASH_DATA_URL = '/data/garbageItems.json';
+const TRASH_DATA_URL = '/public/data/garbageItems.json';
 const DEFAULT_DIFFICULTY = 'easy';
 const DEFAULT_CONFIG = getDifficultyConfig(DEFAULT_DIFFICULTY);
 
@@ -99,11 +99,23 @@ const pickRandomCategory = () => ROUND_CATEGORIES[Math.floor(Math.random() * ROU
 const applyAudioSettings = () => {
 	const settings = getSettings();
 	const masterVolume = Number(settings?.musicVolume ?? 80) / 100;
+	const sfxVolume = Number(settings?.sfxVolume ?? 80) / 100;
 	audioManager.setMasterVolume(masterVolume);
+	
+	// Use absolute paths from root
+	// Register all audio files from public/audio folder
 	audioManager
 		.registerSound('bgm', '/public/audio/inGame.mp3', { loop: true, volume: 0.55 })
-		.registerSound('round-clear', '/public/audio/gunshot.mp3', { volume: 0.6 });
-	audioManager.play('bgm');
+		.registerSound('gunshot', '/public/audio/gunshot.mp3', { volume: 0.8 * sfxVolume })
+		.registerSound('hit', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
+		.registerSound('miss', '/public/audio/gunshot.mp3', { volume: 0.4 * sfxVolume })
+		.registerSound('round-clear', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
+		.registerSound('click', '/public/audio/mouse_click.mp3', { volume: 0.5 * sfxVolume });
+	
+	// Play BGM after a short delay to ensure audio context is ready
+	setTimeout(() => {
+		audioManager.play('bgm');
+	}, 500);
 };
 
 const stopBgm = () => {
@@ -136,7 +148,14 @@ const handleTimerTick = (time) => {
 };
 
 const handleTimerFinish = () => {
-	triggerGameOver('time');
+	// Deduct a life when time runs out instead of ending game immediately
+	const remaining = deductLife();
+	if (remaining <= 0) {
+		triggerGameOver('lives');
+	} else {
+		// Round failed due to time, but player still has lives - continue to next round
+		completeRound('timeout');
+	}
 };
 
 const initializeTimer = () => {
@@ -177,10 +196,10 @@ const bindScoreSystemEvents = () => {
 	window.addEventListener('score:update', (event) => updateScoreUI(event.detail?.score));
 	window.addEventListener('lives:update', (event) => {
 		const remainingLives = event.detail?.lives ?? 0;
+		console.log('Lives updated:', remainingLives);
 		renderLives(remainingLives);
-		if (remainingLives <= 0) {
-			triggerGameOver('lives');
-		}
+		// Don't trigger game over here - let handleShotResult handle it
+		// This prevents double-triggering game over
 	});
 };
 
@@ -207,6 +226,11 @@ const showRoundPrompt = async (category) => {
 const setStageCategory = (category) => {
 	if (state.stageElement) {
 		state.stageElement.dataset.roundCategory = category;
+	}
+	// Also set on the A-Frame scene
+	const scene = document.querySelector('#game-scene');
+	if (scene) {
+		scene.dataset.roundCategory = category;
 	}
 };
 
@@ -268,12 +292,14 @@ const fetchTrashDatabase = async () => {
 	try {
 		const response = await fetch(TRASH_DATA_URL);
 		if (!response.ok) {
-			throw new Error('Unable to load trash data');
+			throw new Error(`Unable to load trash data: ${response.status} ${response.statusText}`);
 		}
 		const data = await response.json();
 		state.trashPool = Array.isArray(data) ? data : data?.items ?? [];
+		console.log(`Loaded ${state.trashPool.length} trash items from database`);
 	} catch (error) {
-		console.warn('Falling back to empty trash pool', error);
+		console.error('Error loading trash database:', error);
+		console.warn('Falling back to empty trash pool');
 		state.trashPool = [];
 	}
 	return state.trashPool;
@@ -293,7 +319,7 @@ const completeRound = (outcome) => {
 	if (!state.roundActive) {
 		return;
 	}
-	unregisterShootingHandlers();
+	unregisterMouseShooting();
 	clearTargets();
 	state.roundResolver?.(outcome);
 };
@@ -311,22 +337,62 @@ const handleShotResult = (isCorrect) => {
 		}
 		return;
 	}
+	// Wrong target shot - deduct a life but continue the round
+	// Only end game if lives reach 0
 	const remaining = deductLife();
+	console.log(`Wrong target shot! Lives remaining: ${remaining}`);
 	if (remaining <= 0) {
+		// No lives left - game over
 		triggerGameOver('lives');
+	} else {
+		// Still have lives - continue the round
+		// The round continues until all correct targets are shot or time runs out
 	}
 };
 
+// Listen for settings changes to update audio
+window.addEventListener('game:settings-change', (event) => {
+	const { key, value, settings } = event.detail;
+	if (key === 'musicVolume') {
+		audioManager.setMasterVolume(value / 100);
+	} else if (key === 'sfxVolume') {
+		audioManager.setSoundVolume('gunshot', (value / 100) * 0.8);
+		audioManager.setSoundVolume('hit', (value / 100) * 0.6);
+		audioManager.setSoundVolume('miss', (value / 100) * 0.4);
+		audioManager.setSoundVolume('round-clear', (value / 100) * 0.6);
+	}
+});
+
 const playRound = async () => {
+	console.log('Starting new round...');
 	await fetchTrashDatabase();
+	
+	if (state.trashPool.length === 0) {
+		console.error('No trash items loaded! Cannot start round.');
+		return;
+	}
+	
 	const category = pickRandomCategory();
 	state.roundCategory = category;
 	setStageCategory(category);
 	await showRoundPrompt(category);
+	
 	const targets = buildRoundTargets(category, state.config.gridSize);
+	console.log(`Built ${targets.length} targets for category: ${category}`);
+	
 	state.correctTargetsRemaining = targets.filter((item) => isCorrectCategory(item, category)).length;
+	console.log(`Correct targets to shoot: ${state.correctTargetsRemaining}`);
+	
 	spawnTargets(category, state.config.gridSize, state.config.movementSpeed, targets);
-	registerShootingHandlers(handleShotResult);
+	
+	// Wait a bit for targets to be added to DOM
+	await new Promise(resolve => setTimeout(resolve, 300));
+	
+	registerMouseShooting(handleShotResult);
+	
+	// Request pointer lock when round starts (after user interaction from clicking to start)
+	requestPointerLockOnRoundStart();
+	
 	if (state.correctTargetsRemaining === 0) {
 		completeRound('cleared');
 		return;
@@ -412,6 +478,43 @@ const finishGame = async () => {
 	state.highScore = Math.max(state.highScore, finalScore);
 	updateHighscoreUI(state.highScore);
 	showGameOverOverlay(finalScore, state.highScore);
+	
+	// Exit pointer lock when game is over
+	exitPointerLock();
+};
+
+// Function to exit pointer lock
+const exitPointerLock = () => {
+	const exitLock = document.exitPointerLock ||
+	                  document.mozExitPointerLock ||
+	                  document.webkitExitPointerLock;
+	if (exitLock) {
+		try {
+			exitLock.call(document);
+			console.log('Pointer lock exited - cursor restored');
+		} catch (error) {
+			console.warn('Error exiting pointer lock:', error);
+		}
+	}
+};
+
+// Function to request pointer lock when round starts
+const requestPointerLockOnRoundStart = () => {
+	const scene = document.querySelector('#game-scene');
+	if (!scene || !scene.canvas) return;
+	
+	const canvas = scene.canvas;
+	const requestLock = canvas.requestPointerLock ||
+	                    canvas.mozRequestPointerLock ||
+	                    canvas.webkitRequestPointerLock;
+	if (requestLock) {
+		try {
+			requestLock.call(canvas);
+			console.log('Pointer lock requested on round start');
+		} catch (error) {
+			console.log('Pointer lock request on round start failed:', error);
+		}
+	}
 };
 
 const runGameLoop = async () => {
@@ -430,10 +533,46 @@ const initializeHighScore = async () => {
 	}
 };
 
+const waitForAFrameScene = () => {
+	return new Promise((resolve) => {
+		const checkScene = () => {
+			const scene = document.querySelector('#game-scene');
+			if (scene && scene.hasLoaded) {
+				console.log('A-Frame scene is ready');
+				resolve(scene);
+				return;
+			}
+			// Listen for scene ready event
+			const readyHandler = () => {
+				const scene = document.querySelector('#game-scene');
+				console.log('A-Frame scene ready event received');
+				if (scene) resolve(scene);
+			};
+			window.addEventListener('aframe:scene-ready', readyHandler, { once: true });
+			// Fallback timeout
+			setTimeout(() => {
+				const scene = document.querySelector('#game-scene');
+				if (scene) {
+					console.log('A-Frame scene found via timeout');
+					resolve(scene);
+				} else {
+					console.warn('A-Frame scene not found after timeout');
+					resolve(null);
+				}
+			}, 3000);
+		};
+		checkScene();
+	});
+};
+
 const startGame = async () => {
 	cacheElements();
 	bindScoreSystemEvents();
 	bindPauseEvents();
+	
+	// Wait for A-Frame scene to be ready
+	await waitForAFrameScene();
+	
 	state.difficulty = resolveDifficulty();
 	state.config = getDifficultyConfig(state.difficulty);
 	state.timeRemaining = state.config.timeLimit;

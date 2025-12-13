@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx http-server ./src -o -c-1",
-    "start": "npx http-server ./src -o -c-1"
+    "dev": "npx http-server . -p 8080 -o -c-1",
+    "start": "npx http-server . -p 8080 -o -c-1"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,7 @@
+import { getDifficultyConfig } from './difficultyConfig.js';
+
 const SCORE_EVENT = 'score:update';
 const LIVES_EVENT = 'lives:update';
-const HARD_MODE = 'hard';
-const HARD_LIVES = 1;
 const DEFAULT_LIVES = 3;
 
 let score = 0;
@@ -17,7 +17,10 @@ const emitLives = () => {
 
 export const initScoreSystem = (difficulty = 'easy') => {
 	score = 0;
-	lives = difficulty === HARD_MODE ? HARD_LIVES : DEFAULT_LIVES;
+	// Use lives from difficulty config
+	const config = getDifficultyConfig(difficulty);
+	lives = config?.lives ?? DEFAULT_LIVES;
+	console.log(`Initializing score system for difficulty: ${difficulty}, lives: ${lives}`);
 	emitScore();
 	emitLives();
 };
@@ -32,7 +35,9 @@ export const addPoints = (points) => {
 };
 
 export const deductLife = () => {
+	const previousLives = lives;
 	lives = Math.max(0, lives - 1);
+	console.log(`Deducting life: ${previousLives} -> ${lives}`);
 	emitLives();
 	return lives;
 };
@@ -47,6 +52,8 @@ export const resetScore = () => {
 };
 
 export const resetLives = (difficulty = 'easy') => {
-	lives = difficulty === HARD_MODE ? HARD_LIVES : DEFAULT_LIVES;
+	// Use lives from difficulty config
+	const config = getDifficultyConfig(difficulty);
+	lives = config?.lives ?? DEFAULT_LIVES;
 	emitLives();
 };
