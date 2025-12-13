@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>JunkShot - Game</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <link rel="stylesheet" href="css/game.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- A-Frame Library - Must be in head before scene -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 </head>
 <body>
     <!-- A-Frame scene mounts here -->
@@ -32,7 +39,9 @@
             </div>
             <div class="hud-card lives" id="lives-display">
                 <span class="hud-label">Lives</span>
+                <!-- Lives will be dynamically rendered here by gamePage.js -->
                 <div class="lives-icons" id="lives-container">
+                    <!-- Initial hearts - will be replaced by JavaScript based on difficulty -->
                     <i class="fas fa-heart"></i>
                     <i class="fas fa-heart"></i>
                     <i class="fas fa-heart"></i>
@@ -136,7 +145,13 @@
         </div>
     </div>
 
-    <script src="js/game.js"></script>
+    <!-- A-Frame Scene Initialization - Must load first -->
+    <script type="module" src="js/game.js"></script>
+    
+    <!-- Game Logic - This starts the game and spawns targets -->
+    <!-- gamePage.js will wait for the scene to be ready before starting -->
+    <script type="module" src="src/pages/gamePage.js"></script>
+    
     <script type="module">
         import { getSettings, saveSettings } from './src/services/settingsService.js';
 

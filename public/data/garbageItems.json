@@ -1,0 +1,143 @@
+[
+	{
+		"id": "apple-1",
+		"name": "Apple",
+		"category": "organic",
+		"type": "organic",
+		"image": "public/textures/organic/apple1.png"
+	},
+	{
+		"id": "orange-peel-1",
+		"name": "Orange Peel",
+		"category": "organic",
+		"type": "organic",
+		"image": "public/textures/organic/orangePeel1.png"
+	},
+	{
+		"id": "coconut-1",
+		"name": "Coconut",
+		"category": "organic",
+		"type": "organic",
+		"image": "public/textures/organic/coconut1.png"
+	},
+	{
+		"id": "eggshell-1",
+		"name": "Egg Shell",
+		"category": "organic",
+		"type": "organic",
+		"image": "public/textures/organic/eggShell1.png"
+	},
+	{
+		"id": "leaves-1",
+		"name": "Leaves",
+		"category": "organic",
+		"type": "organic",
+		"image": "public/textures/organic/leaves1.png"
+	},
+	{
+		"id": "can-1",
+		"name": "Aluminum Can",
+		"category": "recyclable",
+		"type": "recyclable",
+		"image": "public/textures/recyclable/can1.png"
+	},
+	{
+		"id": "cardboard-1",
+		"name": "Cardboard Box",
+		"category": "recyclable",
+		"type": "recyclable",
+		"image": "public/textures/recyclable/cardboardBox1.png"
+	},
+	{
+		"id": "glass-1",
+		"name": "Glass Bottles",
+		"category": "recyclable",
+		"type": "recyclable",
+		"image": "public/textures/recyclable/glassBottles1.png"
+	},
+	{
+		"id": "newspaper-1",
+		"name": "Newspaper",
+		"category": "recyclable",
+		"type": "recyclable",
+		"image": "public/textures/recyclable/newspaper1.png"
+	},
+	{
+		"id": "papercup-1",
+		"name": "Paper Cup",
+		"category": "recyclable",
+		"type": "recyclable",
+		"image": "public/textures/recyclable/paperCup1.png"
+	},
+	{
+		"id": "candy-wrapper-1",
+		"name": "Candy Wrapper",
+		"category": "inorganic",
+		"type": "inorganic",
+		"image": "public/textures/inorganic/candyWrapper1.png"
+	},
+	{
+		"id": "cellophane-1",
+		"name": "Cellophane",
+		"category": "inorganic",
+		"type": "inorganic",
+		"image": "public/textures/inorganic/cellophane1.png"
+	},
+	{
+		"id": "cup-1",
+		"name": "Plastic Cup",
+		"category": "inorganic",
+		"type": "inorganic",
+		"image": "public/textures/inorganic/cup1.png"
+	},
+	{
+		"id": "plate-1",
+		"name": "Plastic Plate",
+		"category": "inorganic",
+		"type": "inorganic",
+		"image": "public/textures/inorganic/plate1.png"
+	},
+	{
+		"id": "styrofoam-1",
+		"name": "Styrofoam",
+		"category": "inorganic",
+		"type": "inorganic",
+		"image": "public/textures/inorganic/styrofoam1.png"
+	},
+	{
+		"id": "battery-1",
+		"name": "Battery",
+		"category": "hazardous",
+		"type": "hazardous",
+		"image": "public/textures/hazardous/battery1.png"
+	},
+	{
+		"id": "bottle-1",
+		"name": "Chemical Bottle",
+		"category": "hazardous",
+		"type": "hazardous",
+		"image": "public/textures/hazardous/bottle1.png"
+	},
+	{
+		"id": "paint-1",
+		"name": "Paint Can",
+		"category": "hazardous",
+		"type": "hazardous",
+		"image": "public/textures/hazardous/paint1.png"
+	},
+	{
+		"id": "phone-1",
+		"name": "Phone",
+		"category": "hazardous",
+		"type": "hazardous",
+		"image": "public/textures/hazardous/phone1.png"
+	},
+	{
+		"id": "pill-1",
+		"name": "Pills",
+		"category": "hazardous",
+		"type": "hazardous",
+		"image": "public/textures/hazardous/pill1.png"
+	}
+]
+

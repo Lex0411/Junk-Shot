@@ -121,13 +121,8 @@ const attachStepButtons = (key) => {
 };
 
 const bindLegacyGlobals = () => {
-    window.changeSensitivity = (delta) => setSetting('sensitivity', settings.sensitivity + Number(delta || 0));
-    window.changeMusicVolume = (delta) => setSetting('musicVolume', settings.musicVolume + Number(delta || 0));
-    window.changeSfxVolume = (delta) => setSetting('sfxVolume', settings.sfxVolume + Number(delta || 0));
-
-    window.updateSensitivity = (event) => handleSliderPointer(event, 'sensitivity', sliderRefs.sensitivity?.track);
-    window.updateMusicVolume = (event) => handleSliderPointer(event, 'musicVolume', sliderRefs.musicVolume?.track);
-    window.updateSfxVolume = (event) => handleSliderPointer(event, 'sfxVolume', sliderRefs.sfxVolume?.track);
+    // Functions are already defined at module level for onclick handlers
+    // This function is kept for compatibility but functions are already bound
 };
 
 const navigateHome = () => {
@@ -154,8 +149,68 @@ const applySavedValues = () => {
     });
 };
 
+// Define stub functions immediately so onclick handlers work
+// They'll be replaced with proper implementations after initialization
+window.changeSensitivity = (delta) => {
+    if (typeof setSetting === 'function' && typeof persistSettings === 'function') {
+        if (!settings) settings = getSettings();
+        const current = settings.sensitivity || DEFAULT_SETTINGS.sensitivity;
+        setSetting('sensitivity', current + Number(delta || 0));
+        persistSettings();
+    } else {
+        // Defer until initialized
+        setTimeout(() => window.changeSensitivity(delta), 50);
+    }
+};
+window.changeMusicVolume = (delta) => {
+    if (typeof setSetting === 'function' && typeof persistSettings === 'function') {
+        if (!settings) settings = getSettings();
+        const current = settings.musicVolume || DEFAULT_SETTINGS.musicVolume;
+        setSetting('musicVolume', current + Number(delta || 0));
+        persistSettings();
+    } else {
+        setTimeout(() => window.changeMusicVolume(delta), 50);
+    }
+};
+window.changeSfxVolume = (delta) => {
+    if (typeof setSetting === 'function' && typeof persistSettings === 'function') {
+        if (!settings) settings = getSettings();
+        const current = settings.sfxVolume || DEFAULT_SETTINGS.sfxVolume;
+        setSetting('sfxVolume', current + Number(delta || 0));
+        persistSettings();
+    } else {
+        setTimeout(() => window.changeSfxVolume(delta), 50);
+    }
+};
+
+window.updateSensitivity = (event) => {
+    if (typeof handleSliderPointer === 'function' && sliderRefs.sensitivity?.track) {
+        handleSliderPointer(event, 'sensitivity', sliderRefs.sensitivity.track);
+        if (typeof persistSettings === 'function') persistSettings();
+    } else {
+        setTimeout(() => window.updateSensitivity(event), 50);
+    }
+};
+window.updateMusicVolume = (event) => {
+    if (typeof handleSliderPointer === 'function' && sliderRefs.musicVolume?.track) {
+        handleSliderPointer(event, 'musicVolume', sliderRefs.musicVolume.track);
+        if (typeof persistSettings === 'function') persistSettings();
+    } else {
+        setTimeout(() => window.updateMusicVolume(event), 50);
+    }
+};
+window.updateSfxVolume = (event) => {
+    if (typeof handleSliderPointer === 'function' && sliderRefs.sfxVolume?.track) {
+        handleSliderPointer(event, 'sfxVolume', sliderRefs.sfxVolume.track);
+        if (typeof persistSettings === 'function') persistSettings();
+    } else {
+        setTimeout(() => window.updateSfxVolume(event), 50);
+    }
+};
+
 const initSettingsPage = () => {
     settings = getSettings();
+    
     populateSliderRefs();
     applySavedValues();
     Object.keys(sliderOrder).forEach((key) => {

@@ -14,10 +14,10 @@ body {
 
 body {
     font-family: 'Nunito', 'Comic Neue', sans-serif;
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    background: #1a1a2e;
     min-height: 100vh;
     overflow-x: hidden;
-    color: #333;
+    color: #f7f7f7;
     position: relative;
     display: flex;
     align-items: center;
@@ -52,7 +52,7 @@ body.settings-embedded .floating-trash {
 .bubble {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(78, 205, 196, 0.15);
     animation: float 20s infinite ease-in-out;
 }
 
@@ -61,7 +61,7 @@ body.settings-embedded .floating-trash {
     height: 100px;
     top: 10%;
     left: 10%;
-    background: rgba(255, 107, 107, 0.2);
+    background: rgba(78, 205, 196, 0.2);
     animation-delay: 0s;
 }
 
@@ -70,7 +70,7 @@ body.settings-embedded .floating-trash {
     height: 150px;
     top: 60%;
     right: 10%;
-    background: rgba(77, 171, 247, 0.2);
+    background: rgba(78, 205, 196, 0.15);
     animation-delay: 5s;
 }
 
@@ -79,7 +79,7 @@ body.settings-embedded .floating-trash {
     height: 80px;
     bottom: 20%;
     left: 20%;
-    background: rgba(102, 204, 153, 0.2);
+    background: rgba(78, 205, 196, 0.18);
     animation-delay: 10s;
 }
 
@@ -88,7 +88,7 @@ body.settings-embedded .floating-trash {
     height: 120px;
     top: 30%;
     right: 30%;
-    background: rgba(255, 204, 102, 0.2);
+    background: rgba(78, 205, 196, 0.12);
     animation-delay: 15s;
 }
 
@@ -97,7 +97,7 @@ body.settings-embedded .floating-trash {
     height: 90px;
     bottom: 40%;
     right: 20%;
-    background: rgba(153, 102, 204, 0.2);
+    background: rgba(78, 205, 196, 0.2);
     animation-delay: 20s;
 }
 
@@ -140,44 +140,46 @@ body.settings-embedded .settings-content {
     position: absolute;
     top: 30px;
     left: 30px;
-    background: linear-gradient(135deg, #4ECDC4, #44A08D);
-    border: none;
+    background: rgba(5, 5, 5, 0.75);
+    border: 1px solid rgba(78, 205, 196, 0.3);
     border-radius: 50px;
     padding: 15px 25px;
-    color: white;
+    color: #f7f7f7;
     font-size: 1.2rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4), 0 0 25px rgba(78, 205, 196, 0.2);
     transition: all 0.3s ease;
     z-index: 2;
 }
 
 .back-button:hover {
     transform: translateX(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(78, 205, 196, 0.4);
+    border-color: rgba(78, 205, 196, 0.6);
 }
 
 /* ===== SETTINGS CONTENT ===== */
 .settings-content {
-    background: white;
+    background: rgba(5, 5, 5, 0.75);
+    border: 1px solid rgba(78, 205, 196, 0.3);
     border-radius: 30px;
     padding: 32px clamp(24px, 4vw, 48px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(78, 205, 196, 0.2);
 }
 
 .setting-item {
     margin-bottom: 36px;
     padding-bottom: 36px;
-    border-bottom: 3px dashed #eee;
+    border-bottom: 3px dashed rgba(78, 205, 196, 0.2);
 }
 body.settings-embedded .setting-item {
     margin-bottom: 24px;
     padding-bottom: 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(78, 205, 196, 0.2);
 }
 
 .setting-item:last-child {
@@ -189,30 +191,31 @@ body.settings-embedded .setting-item {
 .settings-actions {
     margin-top: 10px;
     padding-top: 24px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid rgba(78, 205, 196, 0.2);
     display: flex;
     justify-content: flex-end;
 }
 
 .settings-save-btn {
-    border: none;
+    border: 1px solid rgba(78, 205, 196, 0.3);
     border-radius: 18px;
     padding: 14px 32px;
     font-size: 1rem;
     font-weight: 700;
-    color: #fff;
-    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+    color: #f7f7f7;
+    background: rgba(5, 5, 5, 0.75);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 25px rgba(78, 205, 196, 0.2);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .settings-save-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(78, 205, 196, 0.4);
+    border-color: rgba(78, 205, 196, 0.6);
 }
 
 .settings-save-btn i {
@@ -244,7 +247,7 @@ body.settings-embedded .setting-header i {
 
 .setting-header h3 {
     font-size: 1.8rem;
-    color: #333;
+    color: #f7f7f7;
     flex: 1;
 }
 body.settings-embedded .setting-header h3 {
@@ -261,30 +264,31 @@ body.settings-embedded .setting-header h3 {
 .control-btn {
     width: 60px;
     height: 60px;
-    border: none;
+    border: 1px solid rgba(78, 205, 196, 0.3);
     border-radius: 50%;
-    background: linear-gradient(135deg, #FFD166, #FFB347);
-    color: white;
+    background: rgba(5, 5, 5, 0.75);
+    color: #f7f7f7;
     font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4), 0 0 15px rgba(78, 205, 196, 0.2);
 }
 body.settings-embedded .control-btn {
     width: 48px;
     height: 48px;
     background: transparent;
-    border: 2px solid rgba(0, 0, 0, 0.15);
-    color: #333;
+    border: 2px solid rgba(78, 205, 196, 0.3);
+    color: #f7f7f7;
     box-shadow: none;
 }
 
 .control-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 25px rgba(78, 205, 196, 0.4);
+    border-color: rgba(78, 205, 196, 0.6);
 }
 
 .control-btn:active {
@@ -298,32 +302,34 @@ body.settings-embedded .control-btn {
 
 .slider-track {
     height: 20px;
-    background: #eee;
+    background: rgba(78, 205, 196, 0.1);
     border-radius: 10px;
     position: relative;
     cursor: pointer;
     margin-bottom: 10px;
 }
 body.settings-embedded .slider-track {
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(78, 205, 196, 0.1);
 }
 
 .slider-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4ECDC4, #FF6B6B);
+    background: linear-gradient(90deg, #4ECDC4, #4ECDC4);
     border-radius: 10px;
     transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
 }
 
 .slider-handle {
     width: 40px;
     height: 40px;
-    background: white;
+    background: #f7f7f7;
+    border: 2px solid #4ECDC4;
     border-radius: 50%;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4), 0 0 15px rgba(78, 205, 196, 0.5);
     cursor: grab;
     transition: left 0.3s ease;
 }

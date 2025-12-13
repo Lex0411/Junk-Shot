@@ -45,6 +45,8 @@ export const saveSettings = (settings = {}) => {
 	return payload;
 };
 
+export { DEFAULT_SETTINGS };
+
 export default {
 	getSettings,
 	saveSettings,
