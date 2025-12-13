@@ -78,14 +78,25 @@ const handleMouseClick = (event) => {
 	// Update raycaster with camera and center position (crosshair)
 	raycaster.setFromCamera(mouse, camera);
 	
-	// Find all targets
+	// Find all targets (should only be containers now)
 	const targets = scene.querySelectorAll(TARGET_SELECTOR);
+	console.log('Found targets:', targets.length);
+	
 	const targetObjects = Array.from(targets)
-		.map(target => target.object3D)
+		.map(target => {
+			if (!target.object3D) {
+				console.warn('Target has no object3D:', target.id);
+				return null;
+			}
+			return target.object3D;
+		})
 		.filter(obj => obj && obj.visible);
 	
-	// Perform raycast
+	console.log('Target objects for raycast:', targetObjects.length);
+	
+	// Perform raycast - true means check children recursively
 	const intersects = raycaster.intersectObjects(targetObjects, true);
+	console.log('Raycast intersects:', intersects.length);
 	
 	// Play gunshot sound
 	audioManager.play('gunshot');
@@ -102,30 +113,79 @@ const handleMouseClick = (event) => {
 		
 		// Find the A-Frame entity from the Three.js object
 		// Traverse up the parent chain to find the A-Frame entity
-		let current = hitObject;
 		let targetElement = null;
 		
-		// Check all targets to find which one contains this object
-		targets.forEach(target => {
-			if (!target.object3D) return;
-			
-			// Check if the hit object is part of this target's object3D tree
-			let checkObj = current;
-			while (checkObj) {
-				if (checkObj === target.object3D || checkObj.parent === target.object3D) {
+		// Traverse up from the hit object to find the container
+		let checkObj = hitObject;
+		while (checkObj && !targetElement) {
+			// Check all targets to see if this object belongs to any of them
+			for (const target of targets) {
+				if (!target.object3D) continue;
+				
+				// Check if checkObj is the target's object3D itself
+				if (checkObj === target.object3D) {
 					targetElement = target;
-					return;
+					break;
 				}
+				
+				// Check if checkObj is a child of the target's object3D
+				// (the image or outline is a child of the container)
+				let parent = checkObj.parent;
+				while (parent) {
+					if (parent === target.object3D) {
+						targetElement = target;
+						break;
+					}
+					parent = parent.parent;
+				}
+				
+				if (targetElement) break;
+			}
+			
+			if (!targetElement) {
 				checkObj = checkObj.parent;
 			}
-		});
+		}
 		
 		if (targetElement) {
+			// Make sure we have the data attributes
+			console.log('Found target element:', {
+				id: targetElement.id,
+				dataset: {
+					id: targetElement.dataset.id,
+					category: targetElement.dataset.category,
+					type: targetElement.dataset.type,
+					correct: targetElement.dataset.correct
+				}
+			});
+			
 			const trashItem = extractTrashItem(targetElement);
+			
+			if (!trashItem || !trashItem.id) {
+				console.error('Failed to extract trash item from target:', targetElement);
+				return;
+			}
+			
 			const expectedCategory = targetElement.closest('[data-round-category]')?.dataset.roundCategory ||
 			                         document.querySelector('#aframe-stage')?.dataset.roundCategory ||
 			                         document.querySelector('#game-scene')?.dataset.roundCategory;
+			
+			console.log('Hit target:', {
+				targetId: trashItem.id,
+				category: trashItem.category,
+				type: trashItem.type,
+				expectedCategory: expectedCategory,
+				isCorrectFlag: trashItem.isCorrect
+			});
+			
+			// Check if the target's category matches the expected category
 			const isCorrect = isCorrectCategory(trashItem, expectedCategory);
+			
+			console.log('Target evaluation:', {
+				targetCategory: trashItem.category,
+				expectedCategory: expectedCategory,
+				isCorrect: isCorrect
+			});
 			
 			if (isCorrect) {
 				playHitEffect?.(targetElement);
@@ -137,7 +197,11 @@ const handleMouseClick = (event) => {
 			onTargetHitCallback?.(isCorrect, trashItem);
 		} else {
 			// Hit something but couldn't find the element
-			console.warn('Hit object but could not find target element', hitObject);
+			console.warn('Hit object but could not find target element', {
+				hitObject: hitObject,
+				hitObjectParent: hitObject.parent,
+				targetsCount: targets.length
+			});
 		}
 	} else {
 		// Missed - play miss effect at cursor position

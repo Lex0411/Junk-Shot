@@ -91,13 +91,34 @@ const attachMovement = (entity, rowIndex, speed, expectedX) => {
 };
 
 const createTargetEntity = (item, index, gridSize, movementSpeed) => {
-	const entity = document.createElement('a-image');
-	entity.classList.add(TARGET_CLASS);
-	
 	// Compute position as object with x, y, z
 	const position = computePosition(index, gridSize);
-	// Set position using object format (A-Frame accepts both string and object)
-	entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+	
+	// Create container entity to hold outline and image
+	const container = document.createElement('a-entity');
+	container.classList.add(TARGET_CLASS);
+	container.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+	container.setAttribute('rotation', '0 180 0'); // Rotate container to face camera
+	
+	// Create outline plane (slightly larger, positioned behind the image)
+	const outline = document.createElement('a-plane');
+	outline.setAttribute('width', '2.3'); // Slightly larger than image (2.0)
+	outline.setAttribute('height', '2.3');
+	outline.setAttribute('position', '0 0 -0.01'); // Slightly behind the image (negative z = further from camera after 180° rotation)
+	outline.setAttribute('material', {
+		color: '#4ecdc4', // Cyan outline color
+		shader: 'flat',
+		side: 'double',
+		transparent: true,
+		opacity: 0.9
+	});
+	outline.setAttribute('rotation', '0 0 0');
+	// Don't make outline raycaster-detectable - only the image should be hit
+	outline.setAttribute('visible', 'true');
+	
+	// Create the image entity
+	const entity = document.createElement('a-image');
+	// Don't add TARGET_CLASS to image - only container should have it
 	entity.setAttribute('scale', TARGET_SCALE);
 	
 	// Fix image path - ensure it starts with / if it doesn't
@@ -114,6 +135,7 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	entity.setAttribute('src', imagePath);
 	entity.setAttribute('width', '2');
 	entity.setAttribute('height', '2');
+	entity.setAttribute('position', '0 0 0');
 	
 	// Ensure material supports transparency for PNG images with transparent backgrounds
 	// For PNG files with transparency, just use transparent: true (no alphaTest needed)
@@ -125,28 +147,22 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 		alphaTest: 0 // Only use alphaTest if needed, 0 means use image's actual alpha channel
 	});
 	
-	// Rotate to face the camera (a-image faces +Z by default, camera is at z=0 looking at z=-5)
-	// So we need to rotate 180 degrees on Y axis to face the camera
-	entity.setAttribute('rotation', '0 180 0');
-	
-	// Set target-item component with data
-	entity.setAttribute('target-item', {
+	// Set target-item component with data on the container
+	container.setAttribute('target-item', {
 		itemId: item.id,
 		category: item.category || '',
 		isCorrect: item.isCorrect,
 		image: imagePath
 	});
 	
-	entity.id = item.id;
-	entity.dataset.id = item.id;
-	entity.dataset.correct = String(item.isCorrect);
-	entity.dataset.type = item.type;
-	entity.dataset.category = item.category || '';
+	container.id = item.id;
+	container.dataset.id = item.id;
+	container.dataset.correct = String(item.isCorrect);
+	container.dataset.type = item.type;
+	container.dataset.category = item.category || '';
 	
-	// Don't use look-at for posters - they should stay flat on the wall
-	// entity.setAttribute('look-at', '#camera');
-	
-	// Make sure it's interactive and raycaster-detectable
+	// Make sure container is interactive and raycaster-detectable
+	container.setAttribute('data-raycastable', '');
 	entity.setAttribute('data-raycastable', '');
 	
 	// Add error handling for image loading
@@ -160,11 +176,15 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 		entity.setAttribute('material', 'color: #ff0000; shader: flat');
 	});
 	
+	// Add outline and image to container
+	container.appendChild(outline);
+	container.appendChild(entity);
+	
 	const row = Math.floor(index / gridSize);
 	// Pass expected x position to animation so it doesn't read (0,0,0)
-	attachMovement(entity, row, movementSpeed, position.x);
+	attachMovement(container, row, movementSpeed, position.x);
 	
-	return entity;
+	return container;
 };
 
 export const clearTargets = () => {
