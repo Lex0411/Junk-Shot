@@ -1,12 +1,34 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false } }
-);
+let supabase;
+try {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Missing Supabase credentials:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      env: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+    });
+  }
+  
+  supabase = createClient(
+    supabaseUrl,
+    supabaseKey,
+    { auth: { persistSession: false } }
+  );
+} catch (error) {
+  console.error('Failed to initialize Supabase client:', error);
+}
 
 export default async function handler(req, res) {
+  if (!supabase) {
+    return res.status(500).json({ 
+      error: 'Supabase client not initialized. Check environment variables.',
+      score: 0 
+    });
+  }
   try {
     const { difficulty } = req.query;
 

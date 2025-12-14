@@ -7,7 +7,7 @@ export const playHitEffect = (targetElement) => {
 	if (!targetElement) return;
 
 	// Play hit sound
-	audioManager.play('hit');
+	audioManager.play('hit', false);
 
 	// Create success particles
 	createHitParticles(targetElement);

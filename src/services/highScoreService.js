@@ -31,7 +31,6 @@ export const getHighScore = async (difficulty) => {
 };
 
 export const saveHighScore = async (score, difficulty) => {
-  // Silently fail if API not available - no console output
   try {
     const res = await fetch('/api/saveHighestScore', {
       method: 'POST',
@@ -40,13 +39,14 @@ export const saveHighScore = async (score, difficulty) => {
     });
     
     if (!res.ok) {
-      // API not available - fail silently
+      const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('Failed to save high score:', res.status, errorData);
       return { updated: false };
     }
     
     return await res.json();
   } catch (error) {
-    // Network error - fail silently, no console output
+    console.error('Error saving high score:', error);
     return { updated: false };
   }
 };

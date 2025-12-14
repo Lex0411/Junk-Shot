@@ -100,13 +100,12 @@ const applyAudioSettings = () => {
 	const settings = getSettings();
 	const masterVolume = Number(settings?.musicVolume ?? 80) / 100;
 	const sfxVolume = Number(settings?.sfxVolume ?? 80) / 100;
-	audioManager.setMasterVolume(masterVolume);
 	
 	// Use absolute paths from root
 	// Register all audio files from public/audio folder
 	audioManager
-		.registerSound('bgm', '/public/audio/inGame.mp3', { loop: true, volume: 0.55 })
-		.registerSound('gunshot', '/public/audio/gunshot.mp3', { volume: 0.8 * sfxVolume })
+		.registerSound('bgm', '/public/audio/inGame.mp3', { loop: true, volume: masterVolume })
+		.registerSound('gunshot', '/public/audio/gunshot.mp3', { volume: 2 * sfxVolume })
 		.registerSound('hit', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
 		.registerSound('miss', '/public/audio/gunshot.mp3', { volume: 0.4 * sfxVolume })
 		.registerSound('round-clear', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
@@ -114,13 +113,28 @@ const applyAudioSettings = () => {
 	
 	// Play BGM after a short delay to ensure audio context is ready
 	setTimeout(() => {
-		audioManager.play('bgm');
+		audioManager.play('bgm', false); // Don't apply master volume to BGM since volume is already set
 	}, 500);
 };
 
 const stopBgm = () => {
 	const channel = audioManager.channels?.get('bgm');
 	channel?.audio.pause();
+};
+
+const applySensitivitySettings = () => {
+	const settings = getSettings();
+	const sensitivity = Number(settings?.sensitivity ?? 50) / 100;
+	// Convert 0-100 slider to reasonable sensitivity range (0.001 to 0.005)
+	const actualSensitivity = 0.001 + (sensitivity * 0.004);
+	
+	const camera = document.querySelector('#camera');
+	if (camera && camera.components && camera.components['fps-controls']) {
+		// Update fps-controls component data directly
+		camera.components['fps-controls'].data.sensitivity = actualSensitivity;
+		camera.components['fps-controls'].update();
+		console.log(`Applied sensitivity: ${sensitivity * 100}% (${actualSensitivity})`);
+	}
 };
 
 const updateScoreUI = (score) => {
@@ -332,7 +346,7 @@ const handleShotResult = (isCorrect) => {
 		state.correctTargetsRemaining = Math.max(0, state.correctTargetsRemaining - 1);
 		addPoints(SCORE_PER_HIT);
 		if (state.correctTargetsRemaining === 0) {
-			audioManager.play('round-clear');
+			audioManager.play('round-clear', false);
 			completeRound('cleared');
 		}
 		return;
@@ -354,12 +368,15 @@ const handleShotResult = (isCorrect) => {
 window.addEventListener('game:settings-change', (event) => {
 	const { key, value, settings } = event.detail;
 	if (key === 'musicVolume') {
-		audioManager.setMasterVolume(value / 100);
+		// Only affect BGM, not SFX sounds
+		audioManager.setSoundVolume('bgm', value / 100);
 	} else if (key === 'sfxVolume') {
-		audioManager.setSoundVolume('gunshot', (value / 100) * 0.8);
+		audioManager.setSoundVolume('gunshot', (value / 100) * 2);
 		audioManager.setSoundVolume('hit', (value / 100) * 0.6);
 		audioManager.setSoundVolume('miss', (value / 100) * 0.4);
 		audioManager.setSoundVolume('round-clear', (value / 100) * 0.6);
+	} else if (key === 'sensitivity') {
+		applySensitivitySettings();
 	}
 });
 
@@ -577,6 +594,7 @@ const startGame = async () => {
 	state.config = getDifficultyConfig(state.difficulty);
 	state.timeRemaining = state.config.timeLimit;
 	applyAudioSettings();
+	applySensitivitySettings();
 	initScoreSystem(state.difficulty);
 	updateTimeUI();
 	await initializeHighScore();

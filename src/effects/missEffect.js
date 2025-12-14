@@ -7,7 +7,7 @@ export const playMissEffect = (targetElement) => {
 	if (!targetElement) return;
 
 	// Play miss sound
-	audioManager.play('miss');
+	audioManager.play('miss', false);
 
 	// Get original position to ensure we don't lose it
 	const originalPos = targetElement.getAttribute('position');

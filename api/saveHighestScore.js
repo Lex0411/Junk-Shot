@@ -1,10 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false } }
-);
+let supabase;
+try {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Missing Supabase credentials:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      env: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+    });
+  }
+  
+  supabase = createClient(
+    supabaseUrl,
+    supabaseKey,
+    { auth: { persistSession: false } }
+  );
+} catch (error) {
+  console.error('Failed to initialize Supabase client:', error);
+}
 
 const SUPPORTED_DIFFICULTIES = ['easy', 'intermediate', 'hard'];
 
@@ -28,6 +44,13 @@ async function parseJsonBody(req) {
 }
 
 export default async function handler(req, res) {
+  if (!supabase) {
+    return res.status(500).json({ 
+      error: 'Supabase client not initialized. Check environment variables.',
+      updated: false 
+    });
+  }
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST method required' });
   }
@@ -58,15 +81,17 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     if (selError) {
+      console.error('Select error:', selError);
       return res.status(500).json({ error: selError.message });
     }
 
     if (!current) {
       const { error: insError } = await supabase
         .from('highscore')
-        .insert([{ score, difficulty, updated_at: new Date() }]);
+        .insert([{ score, difficulty, updated_at: new Date().toISOString() }]);
 
       if (insError) {
+        console.error('Insert error:', insError);
         return res.status(500).json({ error: insError.message });
       }
 
@@ -76,10 +101,11 @@ export default async function handler(req, res) {
     if (score > current.score) {
       const { error: updError } = await supabase
         .from('highscore')
-        .update({ score, updated_at: new Date() })
+        .update({ score, updated_at: new Date().toISOString() })
         .eq('id', current.id);
 
       if (updError) {
+        console.error('Update error:', updError);
         return res.status(500).json({ error: updError.message });
       }
 
@@ -88,6 +114,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ updated: false, score: current.score });
   } catch (error) {
+    console.error('Save high score error:', error);
     return res.status(500).json({ error: error.message });
   }
 }

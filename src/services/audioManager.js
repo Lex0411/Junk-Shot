@@ -23,6 +23,10 @@ class AudioChannel {
 
 	setVolume(volume) {
 		this.baseVolume = this.#clampVolume(volume);
+		// If audio is currently playing, update its volume immediately
+		if (!this.audio.paused) {
+			this.audio.volume = this.baseVolume;
+		}
 	}
 }
 
@@ -63,12 +67,12 @@ export default class AudioManager {
 		this.channels.delete(key);
 	}
 
-	play(key) {
+	play(key, useMasterVolume = true) {
 		const channel = this.channels.get(key);
 		if (!channel) {
 			return;
 		}
-		channel.play(this.masterVolume);
+		channel.play(useMasterVolume ? this.masterVolume : 1);
 	}
 
 	setSoundVolume(key, volume) {

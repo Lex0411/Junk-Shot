@@ -1,24 +1,5 @@
-import AudioManager from '../services/audioManager.js';
-
-const CLICK_SOUND_KEY = 'ui-click';
-const CLICK_SOUND_SRC = '/public/audio/mouse_click.mp3';
 const QUIT_MODAL_OPEN_CLASS = 'quit-modal-open';
 const NAV_DELAY_MS = 120;
-
-const audioManager = AudioManager.getInstance();
-audioManager.registerSound(CLICK_SOUND_KEY, CLICK_SOUND_SRC, { volume: 0.5 });
-
-const ensureAudioUnlocked = (() => {
-	let unlocked = false;
-	return () => {
-		if (unlocked) {
-			return;
-		}
-		const test = new Audio();
-		test.play().catch(() => {});
-		unlocked = true;
-	};
-})();
 
 const onReady = (callback) => {
 	if (document.readyState === 'loading') {
@@ -26,29 +7,6 @@ const onReady = (callback) => {
 	} else {
 		callback();
 	}
-};
-
-const playClick = () => {
-	ensureAudioUnlocked();
-	audioManager.play(CLICK_SOUND_KEY);
-};
-
-const onButtonClickSound = () => {
-	playClick();
-};
-
-const attachClickSound = (button) => {
-	if (!button || button.dataset.clickSoundAttached === 'true') {
-		return;
-	}
-
-	button.addEventListener('click', onButtonClickSound, { capture: true });
-	button.dataset.clickSoundAttached = 'true';
-};
-
-const primeButtonClickSounds = (root = document) => {
-	const buttons = root.querySelectorAll('button');
-	buttons.forEach(attachClickSound);
 };
 
 const navigateTo = (path) => {
@@ -81,8 +39,6 @@ const toggleQuitModal = (isOpen, modal) => {
 };
 
 const wireMainMenu = () => {
-	primeButtonClickSounds();
-
 	const playBtn = document.getElementById('playBtn');
 	const settingsBtn = document.getElementById('settingsBtn');
 	const quitBtn = document.getElementById('quitBtn');
