@@ -8,15 +8,15 @@ const DIFFICULTY_MAP = {
 	},
 	intermediate: {
 		gridSize: 4,
-		movement: 'slow',
-		movementSpeed: 0.5,
+		movement: 'medium',
+		movementSpeed: 1,
 		timeLimit: 45,
 		lives: 3
 	},
 	hard: {
 		gridSize: 4,
 		movement: 'fast',
-		movementSpeed: 1,
+		movementSpeed: 1.8,
 		timeLimit: 30,
 		lives: 1
 	}

@@ -54,7 +54,7 @@ const handleTargetClick = (event) => {
 	
 	// Play gunshot sound
 	console.log('Playing gunshot sound');
-	audioManager.play('gunshot');
+	audioManager.play('gunshot', false);
 	
 	// Trigger gun shoot event for visual feedback
 	console.log('Dispatching gun:shoot event');

@@ -99,7 +99,7 @@ const handleMouseClick = (event) => {
 	console.log('Raycast intersects:', intersects.length);
 	
 	// Play gunshot sound
-	audioManager.play('gunshot');
+	audioManager.play('gunshot', false);
 	
 	// Trigger gun shoot event for visual feedback
 	window.dispatchEvent(new CustomEvent('gun:shoot', { 
