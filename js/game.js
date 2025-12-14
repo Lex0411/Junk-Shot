@@ -3,6 +3,7 @@ import '../src/components/aframeAnimations.js';
 import '../src/components/aframeGun.js';
 import '../src/components/aframeTarget.js';
 import '../src/components/fpsControls.js';
+import { getSettings } from '../src/services/settingsService.js';
 
 const STAGE_SELECTOR = '#aframe-stage';
 
@@ -14,6 +15,13 @@ const createAFrameScene = () => {
 		console.error('A-Frame stage element not found');
 		return null;
 	}
+
+	// Get sensitivity from settings (0-100, convert to 0.001-0.003 range)
+	const settings = getSettings();
+	const sensitivitySetting = Number(settings?.sensitivity ?? 50);
+	// Convert 0-100 to 0.001-0.003 range (50 = 0.002, 0 = 0.001, 100 = 0.003)
+	// Formula: 0.001 + (value/100) * 0.002
+	const sensitivity = 0.001 + (sensitivitySetting / 100) * 0.002;
 
 	// Create A-Frame scene
 	const sceneHTML = `
@@ -57,9 +65,9 @@ const createAFrameScene = () => {
 		<a-entity id="camera-rig" movement-controls="enabled: false">
 			<a-camera 
 				id="camera"
-				look-controls="enabled: true; pointerLockEnabled: true; touchEnabled: false"
+				look-controls="enabled: true; pointerLockEnabled: true; touchEnabled: false; sensitivity: ${sensitivity}"
 				wasd-controls="enabled: false"
-				fps-controls="enabled: true; sensitivity: 0.002"
+				fps-controls="enabled: true; sensitivity: ${sensitivity}"
 				position="0 1.2 4"
 				rotation="0 0 0"
 			>

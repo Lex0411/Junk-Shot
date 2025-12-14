@@ -2,18 +2,45 @@ const STAGE_SELECTOR = '#game-scene';
 const TARGET_CLASS = 'junkshot-target';
 const ROW_GAP = 2.8; // Increased gap to prevent overlap (targets are 2.4 units with scale)
 const COLUMN_GAP = 2.8; // Increased gap to prevent overlap
-// Targets positioned in front of the building
-// Camera is at z=2, y=1.2 looking straight ahead
-// Move targets forward so they appear in front of the building structures
-const BASE_DISTANCE = -2; // Position in front of the building
-const BASE_HEIGHT = 1.2; // Same height as camera (y=1.2) - eye level straight-on view
-const TARGET_SCALE = '1.2 1.2 1.2';
+// Targets positioned higher to avoid tree obstruction
+// Camera is at z=4, y=1.2 looking straight ahead
+// Using previous distance but elevated to clear trees
+const BASE_DISTANCE = -2; // Previous distance (back to original)
+const BASE_HEIGHT = 2.5; // Higher position to clear trees
+const TARGET_SCALE = '1.0 1.0 1.0'; // Base scale for easy mode
 const MOVE_AMPLITUDE = 0.3; // Reduced movement for posters on wall
 const MOVE_DURATION_BASE = 4000;
 
-// Use the SAME spacing for ALL difficulties - copy exact configuration from easy mode
-const getSpacing = (gridSize) => {
-	// Same spacing for all grid sizes - ensures identical positioning
+// Get target scale based on difficulty mode
+const getTargetScale = (gridSize, movementSpeed) => {
+	// Hard mode: base size
+	if (movementSpeed === 1) {
+		return '1.0 1.0 1.0'; // Hard mode scale
+	}
+	// Intermediate mode: slightly smaller to avoid touching trees, but not as small as hard
+	if (gridSize === 4 && movementSpeed === 0.5) {
+		return '0.95 0.95 0.95'; // Intermediate mode - a bit smaller to avoid trees
+	}
+	// Easy mode: base scale
+	return '1.0 1.0 1.0'; // Easy mode scale
+};
+
+// Spacing configuration - balanced gaps for different modes to avoid tree obstruction
+const getSpacing = (gridSize, movementSpeed) => {
+	// Hard mode (movementSpeed === 1) uses gaps similar to easy mode but slightly smaller
+	// Enough spacing to see sky between targets, but more compact than easy mode
+	if (movementSpeed === 1) {
+		return { rowGap: 2.2, colGap: 2.2 }; // Similar to easy but not as wide - sky visible between targets
+	}
+	// Easy mode (gridSize === 3, movementSpeed === 0) - tighter gap to avoid tree obstruction
+	if (gridSize === 3 && movementSpeed === 0) {
+		return { rowGap: 2.4, colGap: 2.4 }; // Tighter gap for easy mode to prevent bottom right from touching tree
+	}
+	// Intermediate mode (gridSize === 4, movementSpeed === 0.5) - test gap of 2.2
+	if (gridSize === 4 && movementSpeed === 0.5) {
+		return { rowGap: 2.2, colGap: 2.2 }; // Gap of 2.2 for intermediate mode
+	}
+	// Default spacing (fallback)
 	return { rowGap: 2.8, colGap: 2.8 };
 };
 
@@ -35,64 +62,45 @@ const getStage = () => {
 	return stageRef;
 };
 
-const computePosition = (index, gridSize) => {
+const computePosition = (index, gridSize, movementSpeed = 0) => {
 	const row = Math.floor(index / gridSize);
 	const column = index % gridSize;
 	const offset = (gridSize - 1) / 2;
-	const spacing = getSpacing(gridSize);
-	const x = (column - offset) * spacing.colGap;
-	// Use the same positioning formula for ALL difficulties (easy, medium, hard)
-	// This ensures consistent visual positioning across all modes
-	const y = BASE_HEIGHT + row * spacing.rowGap;
-	// Position exactly on the wall surface (front face of wall)
-	const z = BASE_DISTANCE; // All targets at same distance (on the wall surface)
+	const spacing = getSpacing(gridSize, movementSpeed);
+	let x = (column - offset) * spacing.colGap;
+	// Intermediate mode: shift targets slightly left to avoid touching trees on the right
+	if (gridSize === 4 && movementSpeed === 0.5) {
+		x -= 0.3; // Shift left by 0.3 units
+	}
+	// Hard mode and Intermediate mode use higher base height to ensure targets clear trees completely
+	let baseHeight = BASE_HEIGHT;
+	if (movementSpeed === 1) {
+		baseHeight = 3.0; // Hard mode
+	} else if (gridSize === 4 && movementSpeed === 0.5) {
+		baseHeight = 3.0; // Intermediate mode - same height as hard to avoid trees
+	}
+	const y = baseHeight + row * spacing.rowGap;
+	// Distance: Hard mode furthest back, intermediate slightly back, easy at base distance
+	let z = BASE_DISTANCE;
+	if (movementSpeed === 1) {
+		z = -3.5; // Hard mode: push targets further back to increase difficulty
+	} else if (gridSize === 4 && movementSpeed === 0.5) {
+		z = -2.5; // Intermediate mode: push targets slightly back
+	}
 	return { x, y, z };
 };
 
-const attachMovement = (entity, rowIndex, speed, expectedX) => {
-	// Disable movement for all modes - targets should be stationary like posters on wall
-	// This matches easy mode behavior where targets don't float
-	if (!entity || speed <= 0) {
+const attachMovement = (entity, rowIndex, columnIndex, speed, expectedX) => {
+	// All modes have no animation - targets are stationary
+	if (!entity) {
 		return;
 	}
-	// Disable movement animation entirely to prevent floating effect
-	return;
-	// Wait for entity to be in scene and position to be set before adding animation
-	// Use expectedX if provided, otherwise read from entity after it's positioned
-	setTimeout(() => {
-		if (!entity.object3D || !entity.object3D.parent) {
-			// Retry if not ready
-			setTimeout(() => attachMovement(entity, rowIndex, speed, expectedX), 100);
-			return;
-		}
-		
-		const amplitude = MOVE_AMPLITUDE * (rowIndex % 2 === 0 ? 1 : -1);
-		const duration = Math.max(1200, MOVE_DURATION_BASE / speed);
-		
-		// Use expectedX if provided, otherwise read from object3D
-		const x = expectedX !== undefined ? expectedX : (entity.object3D.position.x || 0);
-		
-		// Only add animation if position is valid (not at origin)
-		if (Math.abs(x) > 0.01 || Math.abs(entity.object3D.position.z) < -1) {
-			entity.setAttribute('animation__zigzag', {
-				property: 'position.x',
-				from: x - amplitude,
-				to: x + amplitude,
-				dur: duration,
-				dir: 'alternate',
-				easing: 'linear',
-				loop: true
-			});
-		} else {
-			// Position not set yet, retry
-			setTimeout(() => attachMovement(entity, rowIndex, speed, expectedX), 100);
-		}
-	}, 300); // Increased delay to ensure position is set first
+	// Movement disabled - all targets remain stationary
 };
 
 const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	// Compute position as object with x, y, z
-	const position = computePosition(index, gridSize);
+	const position = computePosition(index, gridSize, movementSpeed);
 	
 	// Create container entity to hold outline and image
 	const container = document.createElement('a-entity');
@@ -100,17 +108,17 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	container.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
 	container.setAttribute('rotation', '0 180 0'); // Rotate container to face camera
 	
-	// Create outline plane (slightly larger, positioned behind the image)
+	// Create outline plane (thinner border, positioned behind the image)
 	const outline = document.createElement('a-plane');
-	outline.setAttribute('width', '2.3'); // Slightly larger than image (2.0)
-	outline.setAttribute('height', '2.3');
-	outline.setAttribute('position', '0 0 -0.01'); // Slightly behind the image (negative z = further from camera after 180° rotation)
+	outline.setAttribute('width', '2.05'); // Thinner outline - closer to image size (2.0)
+	outline.setAttribute('height', '2.05');
+	outline.setAttribute('position', '0 0 -0.01'); // Behind the image (negative z = further from camera after 180° rotation)
 	outline.setAttribute('material', {
 		color: '#4ecdc4', // Cyan outline color
 		shader: 'flat',
 		side: 'double',
 		transparent: true,
-		opacity: 0.9
+		opacity: 0.9 // Subtle outline that doesn't overpower the image
 	});
 	outline.setAttribute('rotation', '0 0 0');
 	// Don't make outline raycaster-detectable - only the image should be hit
@@ -119,7 +127,8 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	// Create the image entity
 	const entity = document.createElement('a-image');
 	// Don't add TARGET_CLASS to image - only container should have it
-	entity.setAttribute('scale', TARGET_SCALE);
+	const targetScale = getTargetScale(gridSize, movementSpeed);
+	entity.setAttribute('scale', targetScale);
 	
 	// Fix image path - ensure it starts with / if it doesn't
 	// Paths from garbageItems.json are like "public/textures/..." 
@@ -137,14 +146,11 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	entity.setAttribute('height', '2');
 	entity.setAttribute('position', '0 0 0');
 	
-	// Ensure material supports transparency for PNG images with transparent backgrounds
-	// For PNG files with transparency, just use transparent: true (no alphaTest needed)
+	// Material settings for image rendering
 	entity.setAttribute('material', {
 		shader: 'flat',
-		transparent: true,
-		opacity: 1.0,
-		side: 'double', // Render both sides so targets are visible from camera
-		alphaTest: 0 // Only use alphaTest if needed, 0 means use image's actual alpha channel
+		side: 'double',
+		transparent: true
 	});
 	
 	// Set target-item component with data on the container
@@ -160,6 +166,11 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	container.dataset.correct = String(item.isCorrect);
 	container.dataset.type = item.type;
 	container.dataset.category = item.category || '';
+	
+	const row = Math.floor(index / gridSize);
+	const column = index % gridSize;
+	// Store row index for alternating rotation animation
+	container.dataset.rowIndex = row;
 	
 	// Make sure container is interactive and raycaster-detectable
 	container.setAttribute('data-raycastable', '');
@@ -180,9 +191,8 @@ const createTargetEntity = (item, index, gridSize, movementSpeed) => {
 	container.appendChild(outline);
 	container.appendChild(entity);
 	
-	const row = Math.floor(index / gridSize);
 	// Pass expected x position to animation so it doesn't read (0,0,0)
-	attachMovement(container, row, movementSpeed, position.x);
+	attachMovement(container, row, column, movementSpeed, position.x);
 	
 	return container;
 };
@@ -265,7 +275,7 @@ export const spawnTargets = (category, gridSize, movementSpeed, trashList) => {
 		trashList.forEach((item, index) => {
 			try {
 				// Calculate expected position FIRST
-				const expectedPos = computePosition(index, gridSize);
+				const expectedPos = computePosition(index, gridSize, movementSpeed);
 				console.log(`Creating target ${index + 1}/${trashList.length}: ${item.name || item.id} - Expected pos: (${expectedPos.x.toFixed(2)}, ${expectedPos.y.toFixed(2)}, ${expectedPos.z.toFixed(2)})`);
 				
 				const target = createTargetEntity(item, index, gridSize, movementSpeed);

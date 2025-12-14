@@ -14,7 +14,19 @@ class AudioChannel {
 		const volume = this.baseVolume * this.#clampVolume(masterVolume);
 		this.audio.currentTime = 0;
 		this.audio.volume = volume;
-		this.audio.play().catch(() => {});
+		if (volume > 0) {
+			this.audio.play().catch(() => {});
+		}
+	}
+	
+	updateVolume(masterVolume) {
+		const volume = this.baseVolume * this.#clampVolume(masterVolume);
+		this.audio.volume = volume;
+		if (volume === 0 && !this.audio.paused) {
+			this.audio.pause();
+		} else if (volume > 0 && this.audio.paused) {
+			this.audio.play().catch(() => {});
+		}
 	}
 
 	setLoop(loop) {
@@ -23,10 +35,6 @@ class AudioChannel {
 
 	setVolume(volume) {
 		this.baseVolume = this.#clampVolume(volume);
-		// If audio is currently playing, update its volume immediately
-		if (!this.audio.paused) {
-			this.audio.volume = this.baseVolume;
-		}
 	}
 }
 
@@ -49,6 +57,12 @@ export default class AudioManager {
 
 	setMasterVolume(volume) {
 		this.masterVolume = Math.min(1, Math.max(0, Number(volume ?? 1)));
+		// Update all playing channels with new master volume
+		this.channels.forEach((channel) => {
+			if (channel.audio && !channel.audio.paused) {
+				channel.updateVolume(this.masterVolume);
+			}
+		});
 	}
 
 	registerSound(key, src, options = {}) {
@@ -67,12 +81,12 @@ export default class AudioManager {
 		this.channels.delete(key);
 	}
 
-	play(key, useMasterVolume = true) {
+	play(key) {
 		const channel = this.channels.get(key);
 		if (!channel) {
 			return;
 		}
-		channel.play(useMasterVolume ? this.masterVolume : 1);
+		channel.play(this.masterVolume);
 	}
 
 	setSoundVolume(key, volume) {

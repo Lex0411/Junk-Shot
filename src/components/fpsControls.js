@@ -12,7 +12,6 @@ AFRAME.registerComponent('fps-controls', {
 		this.isLocked = false;
 		this.canvas = null;
 		this.autoLockAttempted = false;
-		this.boundOnMouseMove = this.onMouseMove.bind(this);
 		
 		// Wait for scene to be ready
 		this.el.sceneEl.addEventListener('loaded', () => {
@@ -26,9 +25,22 @@ AFRAME.registerComponent('fps-controls', {
 	},
 	
 	autoRequestPointerLock() {
-		// Don't auto-request - browsers require user interaction
-		// Pointer lock will be requested on first click
+		// Auto-request pointer lock after scene is ready
+		// This prevents accidental clicks from shooting
+		if (!this.canvas) return;
+		
+		// Try to request immediately
+		this.requestPointerLock();
+		
+		// Mark as attempted
 		this.autoLockAttempted = true;
+		
+		// If it didn't work, try again after a delay (some browsers require user interaction)
+		setTimeout(() => {
+			if (!this.isLocked && this.canvas) {
+				this.requestPointerLock();
+			}
+		}, 100);
 	},
 
 	setupPointerLock() {
@@ -55,6 +67,19 @@ AFRAME.registerComponent('fps-controls', {
 			touchEnabled: false,
 			reverseMouseDrag: false
 		});
+		
+		// Auto-request pointer lock immediately after setup
+		// Wait a bit for everything to initialize, then try multiple times if needed
+		setTimeout(() => {
+			this.autoRequestPointerLock();
+		}, 500);
+		
+		// Retry if first attempt fails (browser may require user interaction first)
+		setTimeout(() => {
+			if (!this.isLocked && this.canvas) {
+				this.requestPointerLock();
+			}
+		}, 1500);
 	},
 
 	requestPointerLock(event) {
@@ -101,42 +126,9 @@ AFRAME.registerComponent('fps-controls', {
 		
 		if (isLocked) {
 			console.log('Pointer locked - FPS controls active');
-			// Disable look-controls and use our own mouse handler
-			const lookControls = this.el.components['look-controls'];
-			if (lookControls) {
-				lookControls.pause();
-			}
-			document.addEventListener('mousemove', this.boundOnMouseMove);
 		} else {
 			console.log('Pointer unlocked');
-			// Re-enable look-controls
-			const lookControls = this.el.components['look-controls'];
-			if (lookControls) {
-				lookControls.play();
-			}
-			document.removeEventListener('mousemove', this.boundOnMouseMove);
 		}
-	},
-
-	onMouseMove(event) {
-		if (!this.isLocked || !this.data.enabled) return;
-		
-		const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-		
-		// Get current rotation
-		const rotation = this.el.getAttribute('rotation');
-		
-		// Apply sensitivity to mouse movement
-		const sensitivity = this.data.sensitivity;
-		rotation.y -= movementX * sensitivity * 100; // Yaw (horizontal)
-		rotation.x -= movementY * sensitivity * 100; // Pitch (vertical)
-		
-		// Clamp vertical rotation to prevent flipping
-		rotation.x = Math.max(-90, Math.min(90, rotation.x));
-		
-		// Apply rotation
-		this.el.setAttribute('rotation', rotation);
 	},
 
 	onPointerLockError() {
@@ -145,8 +137,15 @@ AFRAME.registerComponent('fps-controls', {
 	},
 
 	update() {
-		// Sensitivity changes are automatically applied via this.data.sensitivity in onMouseMove
-		console.log('Sensitivity updated to:', this.data.sensitivity);
+		// Update look-controls sensitivity if needed
+		if (this.data.enabled) {
+			this.el.setAttribute('look-controls', {
+				enabled: true,
+				pointerLockEnabled: true,
+				touchEnabled: false,
+				sensitivity: this.data.sensitivity
+			});
+		}
 	},
 
 	remove() {
@@ -154,7 +153,6 @@ AFRAME.registerComponent('fps-controls', {
 			this.canvas.removeEventListener('click', this.requestPointerLock);
 		}
 		
-		document.removeEventListener('mousemove', this.boundOnMouseMove);
 		document.removeEventListener('pointerlockchange', this.onPointerLockChange);
 		document.removeEventListener('mozpointerlockchange', this.onPointerLockChange);
 		document.removeEventListener('webkitpointerlockchange', this.onPointerLockChange);

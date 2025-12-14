@@ -100,12 +100,20 @@ const applyAudioSettings = () => {
 	const settings = getSettings();
 	const masterVolume = Number(settings?.musicVolume ?? 80) / 100;
 	const sfxVolume = Number(settings?.sfxVolume ?? 80) / 100;
+	audioManager.setMasterVolume(masterVolume);
+	
+	// Stop lobby music if it's playing
+	const lobbyChannel = audioManager.channels?.get('lobby');
+	if (lobbyChannel && lobbyChannel.audio && !lobbyChannel.audio.paused) {
+		lobbyChannel.audio.pause();
+		lobbyChannel.audio.currentTime = 0;
+	}
 	
 	// Use absolute paths from root
 	// Register all audio files from public/audio folder
 	audioManager
-		.registerSound('bgm', '/public/audio/inGame.mp3', { loop: true, volume: masterVolume })
-		.registerSound('gunshot', '/public/audio/gunshot.mp3', { volume: 2 * sfxVolume })
+		.registerSound('bgm', '/public/audio/inGame.mp3', { loop: true, volume: 0.55 })
+		.registerSound('gunshot', '/public/audio/gunshot.mp3', { volume: 0.8 * sfxVolume })
 		.registerSound('hit', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
 		.registerSound('miss', '/public/audio/gunshot.mp3', { volume: 0.4 * sfxVolume })
 		.registerSound('round-clear', '/public/audio/gunshot.mp3', { volume: 0.6 * sfxVolume })
@@ -113,28 +121,35 @@ const applyAudioSettings = () => {
 	
 	// Play BGM after a short delay to ensure audio context is ready
 	setTimeout(() => {
-		audioManager.play('bgm', false); // Don't apply master volume to BGM since volume is already set
+		audioManager.play('bgm');
 	}, 500);
+};
+
+const applySensitivitySettings = () => {
+	const settings = getSettings();
+	const sensitivitySetting = Number(settings?.sensitivity ?? 50);
+	// Convert 0-100 to 0.001-0.003 range (50 = 0.002, 0 = 0.001, 100 = 0.003)
+	// Formula: 0.001 + (value/100) * 0.002
+	const sensitivity = 0.001 + (sensitivitySetting / 100) * 0.002;
+	
+	// Update camera sensitivity
+	const camera = document.querySelector('#camera');
+	if (camera) {
+		camera.setAttribute('look-controls', {
+			sensitivity: sensitivity
+		});
+		// Also update fps-controls if it exists
+		if (camera.components && camera.components['fps-controls']) {
+			camera.setAttribute('fps-controls', {
+				sensitivity: sensitivity
+			});
+		}
+	}
 };
 
 const stopBgm = () => {
 	const channel = audioManager.channels?.get('bgm');
 	channel?.audio.pause();
-};
-
-const applySensitivitySettings = () => {
-	const settings = getSettings();
-	const sensitivity = Number(settings?.sensitivity ?? 50) / 100;
-	// Convert 0-100 slider to reasonable sensitivity range (0.001 to 0.005)
-	const actualSensitivity = 0.001 + (sensitivity * 0.004);
-	
-	const camera = document.querySelector('#camera');
-	if (camera && camera.components && camera.components['fps-controls']) {
-		// Update fps-controls component data directly
-		camera.components['fps-controls'].data.sensitivity = actualSensitivity;
-		camera.components['fps-controls'].update();
-		console.log(`Applied sensitivity: ${sensitivity * 100}% (${actualSensitivity})`);
-	}
 };
 
 const updateScoreUI = (score) => {
@@ -346,7 +361,7 @@ const handleShotResult = (isCorrect) => {
 		state.correctTargetsRemaining = Math.max(0, state.correctTargetsRemaining - 1);
 		addPoints(SCORE_PER_HIT);
 		if (state.correctTargetsRemaining === 0) {
-			audioManager.play('round-clear', false);
+			audioManager.play('round-clear');
 			completeRound('cleared');
 		}
 		return;
@@ -368,15 +383,12 @@ const handleShotResult = (isCorrect) => {
 window.addEventListener('game:settings-change', (event) => {
 	const { key, value, settings } = event.detail;
 	if (key === 'musicVolume') {
-		// Only affect BGM, not SFX sounds
-		audioManager.setSoundVolume('bgm', value / 100);
+		audioManager.setMasterVolume(value / 100);
 	} else if (key === 'sfxVolume') {
-		audioManager.setSoundVolume('gunshot', (value / 100) * 2);
+		audioManager.setSoundVolume('gunshot', (value / 100) * 0.8);
 		audioManager.setSoundVolume('hit', (value / 100) * 0.6);
 		audioManager.setSoundVolume('miss', (value / 100) * 0.4);
 		audioManager.setSoundVolume('round-clear', (value / 100) * 0.6);
-	} else if (key === 'sensitivity') {
-		applySensitivitySettings();
 	}
 });
 

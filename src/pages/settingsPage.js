@@ -1,4 +1,12 @@
 import { getSettings, saveSettings, DEFAULT_SETTINGS } from '../services/settingsService.js';
+import AudioManager from '../services/audioManager.js';
+
+const CLICK_SOUND_KEY = 'ui-click';
+const CLICK_SOUND_SRC = '/public/audio/mouse_click.mp3';
+
+const audioManager = AudioManager.getInstance();
+audioManager.registerSound(CLICK_SOUND_KEY, CLICK_SOUND_SRC, { volume: 0.5 });
+audioManager.registerSound('lobby', '/public/audio/lobby.mp3', { loop: true, volume: 0.5 });
 
 const sliderOrder = {
     sensitivity: 1,
@@ -65,6 +73,11 @@ const setSetting = (key, value) => {
     const clamped = clampValue(value);
     settings[key] = clamped;
     updateSliderUI(key, clamped);
+    
+    // Update lobby music volume in real-time when music volume changes
+    if (key === 'musicVolume') {
+        updateLobbyMusicVolume();
+    }
 };
 
 const handleSliderPointer = (event, key, track) => {
@@ -125,6 +138,40 @@ const bindLegacyGlobals = () => {
     // This function is kept for compatibility but functions are already bound
 };
 
+const ensureAudioUnlocked = (() => {
+	let unlocked = false;
+	return () => {
+		if (unlocked) {
+			return;
+		}
+		const test = new Audio();
+		test.play().catch(() => {});
+		unlocked = true;
+	};
+})();
+
+const playClick = () => {
+	ensureAudioUnlocked();
+	audioManager.play(CLICK_SOUND_KEY);
+};
+
+const onButtonClickSound = () => {
+	playClick();
+};
+
+const attachClickSound = (button) => {
+	if (!button || button.dataset.clickSoundAttached === 'true') {
+		return;
+	}
+	button.addEventListener('click', onButtonClickSound, { capture: true });
+	button.dataset.clickSoundAttached = 'true';
+};
+
+const primeButtonClickSounds = (root = document) => {
+	const buttons = root.querySelectorAll('button');
+	buttons.forEach(attachClickSound);
+};
+
 const navigateHome = () => {
     window.location.assign('/index.html');
 };
@@ -140,6 +187,10 @@ const bindNavigationButtons = () => {
 
     saveButton?.addEventListener('click', () => {
         persistSettings();
+        // Navigate back to menu after saving
+        setTimeout(() => {
+            navigateHome();
+        }, 100);
     });
 };
 
@@ -208,8 +259,29 @@ window.updateSfxVolume = (event) => {
     }
 };
 
+const updateLobbyMusicVolume = () => {
+    const musicVolume = Number(settings?.musicVolume ?? 80) / 100;
+    // AudioManager will automatically update all playing channels
+    audioManager.setMasterVolume(musicVolume);
+};
+
 const initSettingsPage = () => {
     settings = getSettings();
+    
+    // Attach click sounds to buttons
+    primeButtonClickSounds();
+    
+    // Apply music volume setting and play lobby music
+    const musicVolume = Number(settings?.musicVolume ?? 80) / 100;
+    audioManager.setMasterVolume(musicVolume);
+    
+    ensureAudioUnlocked();
+    setTimeout(() => {
+        // Only play if music volume is not 0
+        if (musicVolume > 0) {
+            audioManager.play('lobby');
+        }
+    }, 300);
     
     populateSliderRefs();
     applySavedValues();
