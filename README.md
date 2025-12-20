@@ -72,6 +72,7 @@ cd junk-shot
 ***Install Dependencies***
 ```
 npm install
+npm install -g vercel
 ```
 
 ***Create .env.local***
