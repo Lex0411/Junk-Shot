@@ -16,7 +16,7 @@ const DIFFICULTY_MAP = {
 	hard: {
 		gridSize: 4,
 		movement: 'fast',
-		movementSpeed: 1.8,
+		movementSpeed: 2,
 		timeLimit: 30,
 		lives: 1
 	}
