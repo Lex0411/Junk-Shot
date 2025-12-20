@@ -1,4 +1,4 @@
-<img src="screenshots/gameplay.png" alt="Gameplay Scene" height="1919" width="1037"># JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
+<img src="screenshots/lobby.png" alt="Gameplay Scene" height="1919" width="1037"># JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
 
 ## An immersive 3D educational web game built with A-Frame + Three.js + Supabase
 
@@ -22,13 +22,13 @@ The idea for **Junk Shot** originated from our own campus, fueled by the frustra
 ### Game Screenshots
 
 <div align="center">
-  <img src="screenshots/gameplay.png" alt="Gameplay Scene" width="700">
-  <p><em>In-game view: Shooting organic waste targets</em></p>
+  <img src="screenshots/difficulty.png" alt="Gameplay Scene" width="700">
+  <p><em>Choose difficulty</em></p>
   
   <br>
 
-  <img src="screenshots/lobby.png" alt="Main Menu" width="700">
-  <p><em>Lobby</em></p>
+  <img src="screenshots/gameplay.png" alt="Main Menu" width="700">
+  <p><em>In-game view: Shooting organic waste targets</em></p>
 </div>
 
 
