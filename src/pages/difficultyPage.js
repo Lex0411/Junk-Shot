@@ -45,16 +45,14 @@ const primeButtonClickSounds = (root = document) => {
 };
 
 const navigateTo = (path) => {
-	console.log(`[DifficultyPage] Navigating to: ${path}`);
 	window.location.assign(path);
 };
 
 const saveDifficulty = (difficulty) => {
 	try {
 		localStorage.setItem(DIFFICULTY_STORAGE_KEY, difficulty);
-		console.log(`[DifficultyPage] Saved difficulty: ${difficulty}`);
 	} catch (error) {
-		console.error('[DifficultyPage] Failed to save difficulty', error);
+		// Silent fail
 	}
 };
 
@@ -66,15 +64,12 @@ const handleDifficultySelection = (difficulty) => () => {
 const bindButton = (selector, handler) => {
 	const element = document.querySelector(selector);
 	if (!element) {
-		console.warn(`[DifficultyPage] Missing element: ${selector}`);
 		return;
 	}
 	element.addEventListener('click', handler);
 };
 
 const initDifficultyPage = () => {
-	console.log('[DifficultyPage] Initializing listeners');
-	
 	// Attach click sounds to buttons
 	primeButtonClickSounds();
 	

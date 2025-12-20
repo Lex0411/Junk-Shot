@@ -20,8 +20,6 @@ AFRAME.registerComponent('fps-controls', {
 			// Auto-request pointer lock after a short delay
 			this.autoRequestPointerLock();
 		});
-		
-		console.log('FPS controls component initialized');
 	},
 	
 	autoRequestPointerLock() {
@@ -98,8 +96,7 @@ AFRAME.registerComponent('fps-controls', {
 				try {
 					requestLock.call(this.canvas);
 				} catch (error) {
-					// Some browsers may throw if called without user interaction
-					console.log('Pointer lock request failed (may need user interaction):', error);
+					// Silent fail - may need user interaction
 				}
 			}
 		}

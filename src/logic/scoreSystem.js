@@ -20,7 +20,6 @@ export const initScoreSystem = (difficulty = 'easy') => {
 	// Use lives from difficulty config
 	const config = getDifficultyConfig(difficulty);
 	lives = config?.lives ?? DEFAULT_LIVES;
-	console.log(`Initializing score system for difficulty: ${difficulty}, lives: ${lives}`);
 	emitScore();
 	emitLives();
 };
@@ -35,9 +34,7 @@ export const addPoints = (points) => {
 };
 
 export const deductLife = () => {
-	const previousLives = lives;
 	lives = Math.max(0, lives - 1);
-	console.log(`Deducting life: ${previousLives} -> ${lives}`);
 	emitLives();
 	return lives;
 };

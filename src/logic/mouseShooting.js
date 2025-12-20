@@ -40,7 +40,6 @@ const handleMouseClick = (event) => {
 	
 	// Don't shoot if shooting is disabled (pointer lock not active yet)
 	if (!shootingEnabled) {
-		console.log('Shooting disabled - waiting for pointer lock');
 		return;
 	}
 	
@@ -59,14 +58,12 @@ const handleMouseClick = (event) => {
 	}, SHOT_COOLDOWN);
 	
 	if (!raycaster || !camera || !scene) {
-		console.warn('Raycaster or camera not initialized');
 		return;
 	}
 	
 	if (!THREE) {
 		THREE = window.AFRAME?.THREE || window.THREE;
 		if (!THREE) {
-			console.warn('THREE.js not available');
 			return;
 		}
 	}
@@ -80,23 +77,18 @@ const handleMouseClick = (event) => {
 	
 	// Find all targets (should only be containers now)
 	const targets = scene.querySelectorAll(TARGET_SELECTOR);
-	console.log('Found targets:', targets.length);
 	
 	const targetObjects = Array.from(targets)
 		.map(target => {
 			if (!target.object3D) {
-				console.warn('Target has no object3D:', target.id);
 				return null;
 			}
 			return target.object3D;
 		})
 		.filter(obj => obj && obj.visible);
 	
-	console.log('Target objects for raycast:', targetObjects.length);
-	
 	// Perform raycast - true means check children recursively
 	const intersects = raycaster.intersectObjects(targetObjects, true);
-	console.log('Raycast intersects:', intersects.length);
 	
 	// Play gunshot sound
 	audioManager.play('gunshot', false);
@@ -148,17 +140,6 @@ const handleMouseClick = (event) => {
 		}
 		
 		if (targetElement) {
-			// Make sure we have the data attributes
-			console.log('Found target element:', {
-				id: targetElement.id,
-				dataset: {
-					id: targetElement.dataset.id,
-					category: targetElement.dataset.category,
-					type: targetElement.dataset.type,
-					correct: targetElement.dataset.correct
-				}
-			});
-			
 			const trashItem = extractTrashItem(targetElement);
 			
 			if (!trashItem || !trashItem.id) {
@@ -170,22 +151,8 @@ const handleMouseClick = (event) => {
 			                         document.querySelector('#aframe-stage')?.dataset.roundCategory ||
 			                         document.querySelector('#game-scene')?.dataset.roundCategory;
 			
-			console.log('Hit target:', {
-				targetId: trashItem.id,
-				category: trashItem.category,
-				type: trashItem.type,
-				expectedCategory: expectedCategory,
-				isCorrectFlag: trashItem.isCorrect
-			});
-			
 			// Check if the target's category matches the expected category
 			const isCorrect = isCorrectCategory(trashItem, expectedCategory);
-			
-			console.log('Target evaluation:', {
-				targetCategory: trashItem.category,
-				expectedCategory: expectedCategory,
-				isCorrect: isCorrect
-			});
 			
 			if (isCorrect) {
 				playHitEffect?.(targetElement);
@@ -195,17 +162,9 @@ const handleMouseClick = (event) => {
 			
 			// Call the callback with the result
 			onTargetHitCallback?.(isCorrect, trashItem);
-		} else {
-			// Hit something but couldn't find the element
-			console.warn('Hit object but could not find target element', {
-				hitObject: hitObject,
-				hitObjectParent: hitObject.parent,
-				targetsCount: targets.length
-			});
 		}
 	} else {
-		// Missed - play miss effect at cursor position
-		console.log('Missed shot');
+		// Missed shot
 		// Could add a miss effect here if needed
 	}
 };
@@ -246,8 +205,6 @@ const initializeRaycaster = () => {
 		// Store camera reference
 		camera = cameraObj;
 		
-		console.log('Mouse shooting system initialized');
-		
 		// Listen for pointer lock changes to enable shooting
 		const onPointerLockChange = () => {
 			const canvas = scene?.canvas || document.querySelector('#game-scene')?.canvas;
@@ -257,7 +214,6 @@ const initializeRaycaster = () => {
 			
 			if (isLocked) {
 				shootingEnabled = true;
-				console.log('Shooting enabled - pointer lock active');
 			} else {
 				shootingEnabled = false;
 			}
@@ -271,7 +227,6 @@ const initializeRaycaster = () => {
 		setTimeout(() => {
 			if (!shootingEnabled) {
 				shootingEnabled = true;
-				console.log('Shooting enabled (fallback)');
 			}
 		}, 2000);
 	};
@@ -287,8 +242,6 @@ export const registerMouseShooting = (callback) => {
 	
 	// Listen for mouse clicks
 	document.addEventListener('mousedown', handleMouseClick);
-	
-	console.log('Mouse shooting handlers registered');
 };
 
 export const unregisterMouseShooting = () => {
