@@ -1,4 +1,4 @@
-<img width="1919" height="1037" alt="gameplay" src="https://github.com/user-attachments/assets/7c2baab8-bf47-4716-9156-fcadf81d7757" /># JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
+<img src="screenshots/gameplay.png" alt="Gameplay Scene" height="1919" width="1037"># JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
 
 ## An immersive 3D educational web game built with A-Frame + Three.js + Supabase
 
