@@ -6,7 +6,7 @@
 
 ### Game Story & Concept
 
-The idea for **Junk Shot** originated from our own campus, fueled by the frustrating reality that even among highly eduated peers, proper recycling and waste segregation still can't be upheld. Our response to this was to develop **Junk Shot**, a high-energy, arcade-style game designed to fundamentally change behavior. It challenges players to rapidly and accurately "shoot" different types of waste that fit into different prompts. It's a practical, engaging solution that turns a serious environmental gap into a competitive challenge.
+The idea for **Junk Shot** originated from our own campus, fueled by the frustrating reality that even among highly educated peers, proper recycling and waste segregation still can't be upheld. Our response to this was to develop **Junk Shot**, a high-energy, arcade-style game designed to fundamentally change behavior. It challenges players to rapidly and accurately "shoot" different types of waste that fit into different prompts. It's a practical, engaging solution that turns a serious environmental gap into a competitive challenge.
 
 
 ### Gameplay Overview
