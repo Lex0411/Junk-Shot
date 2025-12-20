@@ -26,27 +26,6 @@ AFRAME.registerComponent('target-item', {
 		this.onHoverLeave = this.onHoverLeave.bind(this);
 		this.el.addEventListener('mouseenter', this.onHoverEnter);
 		this.el.addEventListener('mouseleave', this.onHoverLeave);
-
-		// Add subtle rotation animation with alternating directions by row
-		// Even rows (0, 2, 4...): swing one way, Odd rows (1, 3, 5...): swing opposite way
-		// Use relative angles (like -5 to 5) instead of absolute to avoid conflicts with base rotation
-		const rowIndex = parseInt(this.el.dataset.rowIndex) || 0;
-		const isEvenRow = rowIndex % 2 === 0;
-		const maxSwing = 3; // Reduced swing for subtler effect
-		
-		// Even rows: rotate from -maxSwing to +maxSwing, Odd rows: rotate from +maxSwing to -maxSwing
-		const fromAngle = isEvenRow ? -maxSwing : maxSwing;
-		const toAngle = isEvenRow ? maxSwing : -maxSwing;
-		
-		this.el.setAttribute('animation__rotate', {
-			property: 'rotation.y',
-			from: fromAngle,
-			to: toAngle,
-			dur: 3000,
-			dir: 'alternate',
-			easing: 'easeInOutSine',
-			loop: true
-		});
 	},
 
 	onClick(evt) {
