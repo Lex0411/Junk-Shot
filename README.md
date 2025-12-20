@@ -1,4 +1,4 @@
-# JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
+<img width="1919" height="1037" alt="gameplay" src="https://github.com/user-attachments/assets/7c2baab8-bf47-4716-9156-fcadf81d7757" /># JUNKSHOT – A Waste Segregation 3D Carnival Shooting Game
 
 ## An immersive 3D educational web game built with A-Frame + Three.js + Supabase
 
@@ -17,6 +17,19 @@ The idea for **Junk Shot** originated from our own campus, fueled by the frustra
 - Using the 3D gun, the player shoots items matching the category.
 - Hitting a wrong item deducts a heart (or ends the game on Hard mode).
 - The game tracks and updates highest score based on difficulty.
+
+
+### Game Screenshots
+
+<div align="center">
+  <img src="screenshots/gameplay.png" alt="Gameplay Scene" width="700">
+  <p><em>In-game view: Shooting organic waste targets</em></p>
+  
+  <br>
+
+  <img src="screenshots/lobby.png" alt="Main Menu" width="700">
+  <p><em>Lobby</em></p>
+</div>
 
 
 ### Team Roles
