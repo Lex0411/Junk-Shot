@@ -34,6 +34,7 @@ The idea for **Junk Shot** originated from our own campus, fueled by the frustra
 - Game logic structure
 - Project integration 
 - Code review
+- Project management
 
 **Paul** – 3D & A-Frame Scene
 - A-Frame world
@@ -63,9 +64,9 @@ The idea for **Junk Shot** originated from our own campus, fueled by the frustra
 
 ### Installation & Setup
 
-***Clone Repo***
-```
-git clone https://github.com/your-org/junk-shot.git
+***1. Clone Repo***
+```bash
+git clone [https://github.com/Lex0411/Junk-Shot.git](https://github.com/Lex0411/Junk-Shot.git)
 cd junk-shot
 ```
 
@@ -82,7 +83,7 @@ SUPABASE_SERVICE_ROLE_KEY="your_service_role"
 SUPABASE_ANON_KEY="your_anon_key"
 ```
 
-***Deploy to vercel***
+***Run Locally***
 ```
 vercel dev
 ```

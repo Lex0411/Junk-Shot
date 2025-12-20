@@ -29,7 +29,6 @@ AFRAME.registerComponent('target-item', {
 	},
 
 	onClick(evt) {
-		console.log('A-Frame target clicked:', this.data.itemId, 'Category:', this.data.category);
 		// Prevent default to avoid any issues
 		if (evt) {
 			evt.preventDefault();
@@ -51,8 +50,6 @@ AFRAME.registerComponent('target-item', {
 		// Dispatch on both the element and window
 		this.el.dispatchEvent(clickEvent);
 		window.dispatchEvent(clickEvent);
-		
-		console.log('Target click event dispatched for:', this.data.itemId);
 	},
 
 	onHoverEnter() {
