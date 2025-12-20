@@ -208,176 +208,144 @@ export const clearTargets = () => {
 };
 
 export const spawnTargets = (category, gridSize, movementSpeed, trashList) => {
-	const stage = getStage();
-	if (!stage) {
-		console.warn('TargetSpawner: Missing stage element, retrying...');
-		// Retry after a short delay if scene isn't ready
-		setTimeout(() => spawnTargets(category, gridSize, movementSpeed, trashList), 200);
-		return;
-	}
-	clearTargets();
-	
-	// Determine the actual scene element
-	let sceneEl = stage;
-	if (stage.tagName === 'DIV' || stage.id === 'aframe-stage') {
-		sceneEl = stage.querySelector('#game-scene') || stage.sceneEl;
-	}
-	if (!sceneEl) {
-		sceneEl = document.querySelector('#game-scene');
-	}
-	
-	// Wait for A-Frame to be ready if needed
-	if (sceneEl && !sceneEl.hasLoaded) {
-		sceneEl.addEventListener('loaded', () => {
-			setTimeout(() => spawnTargets(category, gridSize, movementSpeed, trashList), 100);
-		}, { once: true });
-		return;
-	}
-	
-	console.log(`Spawning ${trashList.length} targets for category: ${category}`);
-	console.log(`Stage element:`, stage);
-	console.log(`Stage type:`, stage?.tagName);
-	
-	if (!trashList || trashList.length === 0) {
-		console.warn('No trash items to spawn!');
-		return;
-	}
-	
-	// Wait a bit for A-Frame to fully initialize entities
-	setTimeout(() => {
-		if (!stage) {
-			console.error('Stage not available for spawning targets');
-			return;
-		}
-		
-		// Determine the actual scene element
-		// If stage is the a-scene element, use it directly
-		// If stage is a div, get the scene from it
-		let scene = stage;
-		if (stage.tagName === 'DIV' || stage.id === 'aframe-stage') {
-			scene = stage.querySelector('#game-scene') || stage.sceneEl;
-		}
-		
-		// If we still don't have a scene, try to get it from the stage
-		if (!scene || (scene.tagName !== 'A-SCENE' && !scene.sceneEl)) {
-			scene = document.querySelector('#game-scene');
-		}
-		
-		if (!scene) {
-			console.error('A-Frame scene element not found for spawning targets');
-			return;
-		}
-		
-		console.log(`Adding targets to scene:`, scene.tagName, scene.id);
-		console.log(`Scene hasLoaded:`, scene.hasLoaded);
-		console.log(`Scene children count before:`, scene.children.length);
-		
-		trashList.forEach((item, index) => {
-			try {
-				// Calculate expected position FIRST
-				const expectedPos = computePosition(index, gridSize, movementSpeed);
-				console.log(`Creating target ${index + 1}/${trashList.length}: ${item.name || item.id} - Expected pos: (${expectedPos.x.toFixed(2)}, ${expectedPos.y.toFixed(2)}, ${expectedPos.z.toFixed(2)})`);
-				
-				const target = createTargetEntity(item, index, gridSize, movementSpeed);
-				
-				// Add to scene first - A-Frame needs entity in DOM to initialize
-				scene.appendChild(target);
-				
-				// Wait for entity to be fully loaded, then set position IMMEDIATELY
-				const applyPosition = () => {
-					if (target.object3D && target.object3D.parent) {
-						// Set position using attribute (A-Frame's preferred method)
-						target.setAttribute('position', `${expectedPos.x} ${expectedPos.y} ${expectedPos.z}`);
-						// Also set directly on object3D to ensure it sticks
-						target.object3D.position.set(expectedPos.x, expectedPos.y, expectedPos.z);
-						// Ensure rotation is correct (face camera)
-						target.object3D.rotation.y = Math.PI; // 180 degrees in radians
-						// Force update
-						target.object3D.updateMatrixWorld(true);
-						// Ensure visible
-						target.object3D.visible = true;
-						return true; // Position applied successfully
-					}
-					return false; // Not ready yet
-				};
-				
-				// Try to apply position immediately
-				if (!applyPosition()) {
-					// Wait for A-Frame to fully initialize the entity
-					target.addEventListener('loaded', applyPosition, { once: true });
-					// Also try after a delay in case loaded already fired
-					setTimeout(() => {
-						if (!applyPosition()) {
-							// Last resort - keep retrying
-							const retry = setInterval(() => {
-								if (applyPosition()) {
-									clearInterval(retry);
-								}
-							}, 50);
-							setTimeout(() => clearInterval(retry), 2000); // Stop after 2 seconds
-						}
-					}, 100);
-				}
-				
-				// Ensure target is added to scene and visible
-				if (target.parentNode) {
-					const pos = target.getAttribute('position');
-					const posStr = typeof pos === 'object' ? `${pos.x} ${pos.y} ${pos.z}` : pos;
-					const imgPath = target.getAttribute('src');
-					console.log(`✓ Target ${index + 1}/${trashList.length} created: ${item.name || item.id} at ${posStr}, image: ${imgPath}`);
-					
-					// Force update to ensure visibility
-					target.flushToDOM();
-					
-					// Verify the entity is in the scene after a delay
-					setTimeout(() => {
-						if (target.object3D) {
-							const visible = target.object3D.visible !== false;
-							const inScene = target.sceneEl !== null;
-							const pos3d = target.object3D.position;
-							console.log(`Target ${item.id} - visible: ${visible}, inScene: ${inScene}, 3D pos: (${pos3d.x.toFixed(2)}, ${pos3d.y.toFixed(2)}, ${pos3d.z.toFixed(2)})`);
-							if (!visible || !inScene) {
-								console.warn(`⚠ Target ${item.id} may not be visible or in scene`);
-							}
-						} else {
-							console.warn(`⚠ Target ${item.id} object3D not available yet`);
-						}
-					}, 500);
-				} else {
-					console.error(`✗ Target ${item.id} was not added to scene!`);
-				}
-			} catch (error) {
-				console.error(`✗ Error creating target ${index}:`, error, error.stack);
-			}
-		});
-		
-		console.log(`Scene children count after:`, scene.children.length);
-		
-		// Re-register shooting handlers after targets are added
-		setTimeout(() => {
-			const targets = stage.querySelectorAll(`.${TARGET_CLASS}`);
-			console.log(`Total targets in scene: ${targets.length}`);
-			console.log(`Target positions:`, Array.from(targets).map(t => t.getAttribute('position')));
-			
-			if (targets.length > 0 && window._junkshotClickHandler) {
-				// Re-register click handlers for new targets
-				targets.forEach((element) => {
-					element.addEventListener('click', (e) => {
-						const clickEvent = new CustomEvent('target-clicked', {
-							detail: {
-								target: element,
-								itemId: element.dataset.id,
-								category: element.dataset.category,
-								isCorrect: element.dataset.correct === 'true'
-							},
-							bubbles: true
-						});
-						window.dispatchEvent(clickEvent);
-					});
-				});
-			}
-		}, 200);
-		
-		console.log(`Successfully spawned ${trashList.length} targets`);
-	}, 100);
+    const stage = getStage();
+    if (!stage) {
+        console.warn('TargetSpawner: Missing stage element, retrying...');
+        // Retry after a short delay if scene isn't ready
+        setTimeout(() => spawnTargets(category, gridSize, movementSpeed, trashList), 200);
+        return;
+    }
+    clearTargets();
+    
+    // Determine the actual scene element
+    let sceneEl = stage;
+    if (stage.tagName === 'DIV' || stage.id === 'aframe-stage') {
+        sceneEl = stage.querySelector('#game-scene') || stage.sceneEl;
+    }
+    if (!sceneEl) {
+        sceneEl = document.querySelector('#game-scene');
+    }
+    
+    // Wait for A-Frame to be ready if needed
+    if (sceneEl && !sceneEl.hasLoaded) {
+        sceneEl.addEventListener('loaded', () => {
+            spawnTargets(category, gridSize, movementSpeed, trashList);
+        }, { once: true });
+        return;
+    }
+    
+    console.log(`Spawning ${trashList.length} targets for category: ${category}`);
+    console.log(`Stage element:`, stage);
+    console.log(`Stage type:`, stage?.tagName);
+    
+    if (!trashList || trashList.length === 0) {
+        console.warn('No trash items to spawn!');
+        return;
+    }
+    
+    // Determine the actual scene element
+    let scene = stage;
+    if (stage.tagName === 'DIV' || stage.id === 'aframe-stage') {
+        scene = stage.querySelector('#game-scene') || stage.sceneEl;
+    }
+    
+    // If we still don't have a scene, try to get it from the stage
+    if (!scene || (scene.tagName !== 'A-SCENE' && !scene.sceneEl)) {
+        scene = document.querySelector('#game-scene');
+    }
+    
+    if (!scene) {
+        console.error('A-Frame scene element not found for spawning targets');
+        return;
+    }
+    
+    console.log(`Adding targets to scene:`, scene.tagName, scene.id);
+    console.log(`Scene hasLoaded:`, scene.hasLoaded);
+    console.log(`Scene children count before:`, scene.children.length);
+    
+    trashList.forEach((item, index) => {
+        try {
+            // Calculate expected position FIRST
+            const expectedPos = computePosition(index, gridSize, movementSpeed);
+            console.log(`Creating target ${index + 1}/${trashList.length}: ${item.name || item.id} - Expected pos: (${expectedPos.x.toFixed(2)}, ${expectedPos.y.toFixed(2)}, ${expectedPos.z.toFixed(2)})`);
+            
+            const target = createTargetEntity(item, index, gridSize, movementSpeed);
+            
+            // Add to scene first - A-Frame needs entity in DOM to initialize
+            scene.appendChild(target);
+            
+            // Use A-Frame's loaded event to set position reliably
+            target.addEventListener('loaded', () => {
+                if (target.object3D && target.object3D.parent) {
+                    // Set position using attribute (A-Frame's preferred method)
+                    target.setAttribute('position', `${expectedPos.x} ${expectedPos.y} ${expectedPos.z}`);
+                    // Also set directly on object3D to ensure it sticks
+                    target.object3D.position.set(expectedPos.x, expectedPos.y, expectedPos.z);
+                    // Ensure rotation is correct (face camera)
+                    target.object3D.rotation.y = Math.PI; // 180 degrees in radians
+                    // Force update
+                    target.object3D.updateMatrixWorld(true);
+                    // Ensure visible
+                    target.object3D.visible = true;
+                    
+                    const pos = target.getAttribute('position');
+                    const posStr = typeof pos === 'object' ? `${pos.x} ${pos.y} ${pos.z}` : pos;
+                    const imgPath = target.querySelector('a-image')?.getAttribute('src');
+                    console.log(`✓ Target ${index + 1}/${trashList.length} loaded: ${item.name || item.id} at ${posStr}, image: ${imgPath}`);
+                    
+                    // Force update to ensure visibility
+                    target.flushToDOM();
+                    
+                    // Verify visibility after a brief delay
+                    setTimeout(() => {
+                        const visible = target.object3D.visible !== false;
+                        const inScene = target.sceneEl !== null;
+                        const pos3d = target.object3D.position;
+                        console.log(`Target ${item.id} - visible: ${visible}, inScene: ${inScene}, 3D pos: (${pos3d.x.toFixed(2)}, ${pos3d.y.toFixed(2)}, ${pos3d.z.toFixed(2)})`);
+                        if (!visible || !inScene) {
+                            console.warn(`⚠ Target ${item.id} may not be visible or in scene`);
+                        }
+                    }, 100);
+                } else {
+                    console.error(`✗ Target ${item.id} object3D not available after loaded event`);
+                }
+            }, { once: true });
+            
+            // Verify the entity was added
+            if (!target.parentNode) {
+                console.error(`✗ Target ${item.id} was not added to scene!`);
+            }
+        } catch (error) {
+            console.error(`✗ Error creating target ${index}:`, error, error.stack);
+        }
+    });
+    
+    console.log(`Scene children count after:`, scene.children.length);
+    
+    // Re-register shooting handlers after a brief delay to ensure all targets are ready
+    setTimeout(() => {
+        const targets = stage.querySelectorAll(`.${TARGET_CLASS}`);
+        console.log(`Total targets in scene: ${targets.length}`);
+        console.log(`Target positions:`, Array.from(targets).map(t => t.getAttribute('position')));
+        
+        if (targets.length > 0 && window._junkshotClickHandler) {
+            // Re-register click handlers for new targets
+            targets.forEach((element) => {
+                element.addEventListener('click', (e) => {
+                    const clickEvent = new CustomEvent('target-clicked', {
+                        detail: {
+                            target: element,
+                            itemId: element.dataset.id,
+                            category: element.dataset.category,
+                            isCorrect: element.dataset.correct === 'true'
+                        },
+                        bubbles: true
+                    });
+                    window.dispatchEvent(clickEvent);
+                });
+            });
+        }
+    }, 200);
+    
+    console.log(`Successfully spawned ${trashList.length} targets`);
 };
